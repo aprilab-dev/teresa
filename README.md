@@ -1,10 +1,16 @@
-Sample Module Repository
-========================
+# TERESA
 
-This simple project is an example repo for Python projects.
+The [Te]rraquanta's software for [Re]gistration and [Sa]mpling is a python wrapper to pre-process SAR SLC data for the purpose of doing interferometry.
 
-`Learn more <http://www.kennethreitz.org/essays/repository-structure-and-python>`_.
 
----------------
+## Rationale
 
-If you want to learn more about ``setup.py`` files, check out `this repository <https://github.com/kennethreitz/setup.py>`_.
+TBA
+
+## Examples
+
+TBA
+
+## Installation
+
+TBA
