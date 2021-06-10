@@ -13,3 +13,10 @@ class GptProcessor(Processor):
 
     def process(self):
         pass
+
+class DorisProcessor(Processor):
+    def __init__(self):
+        pass
+
+    def process(self):
+        pass
