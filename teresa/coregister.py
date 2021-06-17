@@ -1,6 +1,3 @@
-""" Creator
-"""
-
 import abc
 import processor
 
