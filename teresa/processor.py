@@ -12,15 +12,15 @@ class GptError(RuntimeError):
 class Processor(abc.ABC):
     @abc.abstractmethod
     def process(self):
-        pass
+        ...
 
 
 class GptProcessor(Processor):
     def __init__(
         self,
-        executable: str = Config.SNAP_GPT_EXECUTABLE,
-        cache_size: str = LocalConfig.SNAP_GPT_CACHE_SIZE,
-        cores: int = LocalConfig.SNAP_GPT_NTHREADS,
+        executable: Union[str, None] = Config.SNAP_GPT_EXECUTABLE,
+        cache_size: Union[str, None] = LocalConfig.SNAP_GPT_CACHE_SIZE,
+        cores: Union[int, None] = LocalConfig.SNAP_GPT_NTHREADS,
     ):
         self._executable = executable
         self._cache_size = cache_size
