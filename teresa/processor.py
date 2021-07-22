@@ -1,8 +1,8 @@
 import abc
 import logging
 import subprocess
-from config import Config, LocalConfig
 from typing import Union
+from config import Config, LocalConfig
 
 
 class GptError(RuntimeError):
@@ -35,16 +35,16 @@ class GptProcessor(Processor):
         command = "".join(params)
 
         try:
-            logging.info("Run: {}".format(command))
+            logging.info("Run: %s", command)
             if dry_run:
                 return
             subprocess.run(command, shell=True, check=True, stderr=subprocess.PIPE)
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError as excep:
             raise GptError(
                 "GPT command failed \n {} \n Stderr: {}".format(
-                    command, e.stderr.decode("utf-8")
+                    command, excep.stderr.decode("utf-8")
                 )
-            ) from e
+            ) from excep
 
 
 class DorisProcessor(Processor):  # leave room for other sensors

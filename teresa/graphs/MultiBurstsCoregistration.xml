@@ -1,59 +1,43 @@
 <graph id="Graph">
   <version>1.0</version>
-  <node id="ProductSet-Reader">
-    <operator>ProductSet-Reader</operator>
+  <node id="Read">
+    <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <fileList>${master_file}</fileList>
+      <file>${product1}</file>
     </parameters>
   </node>
-  <node id="ProductSet-Reader(2)">
-    <operator>ProductSet-Reader</operator>
+  <node id="Read(2)">
+    <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <fileList>${slave_file}</fileList>
-    </parameters>
-  </node>
-  <node id="SliceAssembly">
-    <operator>SliceAssembly</operator>
-    <sources>
-      <sourceProduct.2 refid="ProductSet-Reader"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>${polorization}</selectedPolarisations>
-    </parameters>
-  </node>
-  <node id="SliceAssembly(2)">
-    <operator>SliceAssembly</operator>
-    <sources>
-      <sourceProduct.2 refid="ProductSet-Reader(2)"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>${polorization}</selectedPolarisations>
+      <file>${product2}</file>
     </parameters>
   </node>
   <node id="TOPSAR-Split">
     <operator>TOPSAR-Split</operator>
     <sources>
-      <sourceProduct refid="SliceAssembly"/>
+      <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <subswath>${subswath}</subswath>
-      <selectedPolarisations>${polorization}</selectedPolarisations>
-      <firstBurstIndex>1</firstBurstIndex>
-      <lastBurstIndex>999</lastBurstIndex>
+      <selectedPolarisations>${Polarisations}</selectedPolarisations>
+      <firstBurstIndex>${burst0}</firstBurstIndex>
+      <lastBurstIndex>${burst1}</lastBurstIndex>
+      <wktAoi/>
     </parameters>
   </node>
   <node id="TOPSAR-Split(2)">
     <operator>TOPSAR-Split</operator>
     <sources>
-      <sourceProduct refid="SliceAssembly(2)"/>
+      <sourceProduct refid="Read(2)"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <subswath>${subswath}</subswath>
-      <selectedPolarisations>${polorization}</selectedPolarisations>
-      <firstBurstIndex>1</firstBurstIndex>
-      <lastBurstIndex>999</lastBurstIndex>
+      <selectedPolarisations>${Polarisations}</selectedPolarisations>
+      <firstBurstIndex>${burst0}</firstBurstIndex>
+      <lastBurstIndex>${burst1}</lastBurstIndex>
+      <wktAoi/>
     </parameters>
   </node>
   <node id="Apply-Orbit-File">
@@ -64,7 +48,7 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <orbitType>Sentinel Precise (Auto Download)</orbitType>
       <polyDegree>3</polyDegree>
-      <continueOnFail>true</continueOnFail>
+      <continueOnFail>false</continueOnFail>
     </parameters>
   </node>
   <node id="Apply-Orbit-File(2)">
@@ -75,7 +59,7 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <orbitType>Sentinel Precise (Auto Download)</orbitType>
       <polyDegree>3</polyDegree>
-      <continueOnFail>true</continueOnFail>
+      <continueOnFail>false</continueOnFail>
     </parameters>
   </node>
   <node id="Back-Geocoding">
@@ -92,7 +76,7 @@
       <resamplingType>BISINC_5_POINT_INTERPOLATION</resamplingType>
       <maskOutAreaWithoutElevation>true</maskOutAreaWithoutElevation>
       <outputRangeAzimuthOffset>false</outputRangeAzimuthOffset>
-      <outputDerampDemodPhase>true</outputDerampDemodPhase>
+      <outputDerampDemodPhase>false</outputDerampDemodPhase>
       <disableReramp>false</disableReramp>
     </parameters>
   </node>
@@ -108,8 +92,14 @@
       <fineWinAccRange>16</fineWinAccRange>
       <fineWinOversampling>128</fineWinOversampling>
       <xCorrThreshold>0.1</xCorrThreshold>
-      <cohThreshold>0.15</cohThreshold>
+      <cohThreshold>0.3</cohThreshold>
       <numBlocksPerOverlap>10</numBlocksPerOverlap>
+      <esdEstimator>Periodogram</esdEstimator>
+      <weightFunc>Inv Quadratic</weightFunc>
+      <temporalBaselineType>Number of images</temporalBaselineType>
+      <maxTemporalBaseline>4</maxTemporalBaseline>
+      <integrationMethod>L1 and L2</integrationMethod>
+      <doNotWriteTargetBands>false</doNotWriteTargetBands>
       <useSuppliedRangeShift>false</useSuppliedRangeShift>
       <overallRangeShift>0.0</overallRangeShift>
       <useSuppliedAzimuthShift>false</useSuppliedAzimuthShift>
@@ -122,7 +112,7 @@
       <sourceProduct refid="Enhanced-Spectral-Diversity"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>${polorization}</selectedPolarisations>
+      <selectedPolarisations/>
     </parameters>
   </node>
   <node id="Write">
@@ -131,47 +121,41 @@
       <sourceProduct refid="TOPSAR-Deburst"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${output_path}</file>
+      <file>${output}</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>
   <applicationData id="Presentation">
     <Description/>
+    <node id="Read">
+            <displayPosition x="47.0" y="83.0"/>
+    </node>
+    <node id="Read(2)">
+      <displayPosition x="48.0" y="184.0"/>
+    </node>
     <node id="TOPSAR-Split">
-      <displayPosition x="440.0" y="13.0"/>
+      <displayPosition x="131.0" y="88.0"/>
     </node>
     <node id="TOPSAR-Split(2)">
-      <displayPosition x="429.0" y="209.0"/>
+      <displayPosition x="127.0" y="185.0"/>
     </node>
     <node id="Apply-Orbit-File">
-      <displayPosition x="575.0" y="12.0"/>
+      <displayPosition x="235.0" y="94.0"/>
     </node>
     <node id="Apply-Orbit-File(2)">
-      <displayPosition x="572.0" y="210.0"/>
+      <displayPosition x="244.0" y="185.0"/>
     </node>
     <node id="Back-Geocoding">
-      <displayPosition x="764.0" y="120.0"/>
-    </node>
-    <node id="SliceAssembly">
-      <displayPosition x="255.0" y="87.0"/>
-    </node>
-    <node id="SliceAssembly(2)">
-      <displayPosition x="250.0" y="172.0"/>
+      <displayPosition x="357.0" y="136.0"/>
     </node>
     <node id="Enhanced-Spectral-Diversity">
-      <displayPosition x="928.0" y="121.0"/>
+      <displayPosition x="470.0" y="139.0"/>
     </node>
     <node id="TOPSAR-Deburst">
-      <displayPosition x="1120.0" y="178.0"/>
+      <displayPosition x="650.0" y="142.0"/>
     </node>
     <node id="Write">
-            <displayPosition x="1154.0" y="123.0"/>
-    </node>
-    <node id="ProductSet-Reader(2)">
-      <displayPosition x="32.0" y="173.0"/>
-    </node>
-    <node id="ProductSet-Reader">
-      <displayPosition x="43.0" y="87.0"/>
+            <displayPosition x="763.0" y="144.0"/>
     </node>
   </applicationData>
 </graph>

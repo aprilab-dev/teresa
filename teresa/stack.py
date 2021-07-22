@@ -1,9 +1,9 @@
 
 
 class Image:
-    def __init__(self, date: str, filepath:str):
+    def __init__(self, date: str, folder:str):
         self.date = date
-        self.file = filepath
+        self.folder = folder
 
 class SlcPair:
     def __init__(self, master: Image, slave: Image):

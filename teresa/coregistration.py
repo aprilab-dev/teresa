@@ -1,6 +1,6 @@
 import abc
 import processor
-from . import stack
+from . import stack, graphs
 
 
 class Coregistration(abc.ABC):
@@ -27,18 +27,8 @@ class Sentinel1Coregistration(Coregistration):
         self._processor = coreg_processor  # interface
 
     def _prepare(self):
-        # 1. select graph based on input meta.
-        self._select_graph("dummy_graph.xml")  # administritive stuff
-
-    def _select_graph(self, graph: str):
-        """Implement the logic for selecting the correct graph for processing.
-
-        Parameters
-        ----------
-        graph : str
-            [description]
-        """
-        self.graph = graph  # input meta and output graph(xml)
+        # administritive stuff
+        ...
 
     def _coregister(self):
         # the lofic for swath coregistration.
@@ -48,16 +38,12 @@ class Sentinel1Coregistration(Coregistration):
 
     def _coregister_subswath(self, nsubswath):
         """TODO: add description."""
-        self._processor.process(
-            self.graph,
-            dry_run=True,
-        )  # concrete implementation
 
-        # graph = self._get_subswath_coregistration_graph(secondary, reference, esd=esd)
+        graph = graphs.GptGraphS1Coreg.generate()
 
         # Execute the actual coregistration
         self._processor.process(
-            self.graph,
+            graph,
             subswath=f"IW{nsubswath}",
             polorization=self.polarization.upper(),
             master_file=self.slc_pair.master.file,
@@ -67,23 +53,19 @@ class Sentinel1Coregistration(Coregistration):
         )
 
         if self.dry_run:
-            # do something to show the dry run result
+            # do something
             pass
 
         return True
 
     def _merge(self):
-        self._processor.process(self.graph)
+        # self._processor.process(self.graph)
+        pass
 
     def _finalize(self):
         pass  # the logic for cleaning up
 
-    def coregister(
-        self,
-        master: stack.Image,
-        slave: stack.Image,
-        dry_run: bool = False,
-    ):
+    def coregister(self):
         self._prepare()
         self._coregister()
         self._merge()
