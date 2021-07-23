@@ -1,6 +1,6 @@
 # teresa 开发守则
 
-首先，如果你看到了这个页面，恭喜你，希望你即将可以成为 teresa 的开发者！但是，在开始之前，请认真阅读这个文档，以确保你的开发之路一切顺利！
+首先，如果你看到了这个页面，恭喜你，希望你即将可以成为 `teresa` 的开发者！但是，在开始之前，请认真阅读这个文档，以确保你的开发之路一切顺利！
 
 ## 安装与配置
 
@@ -35,4 +35,4 @@ git push --set-upstream origin FRINGE-XX_new_feature_here  # push to upstream
 
 ## 开发规范
 
-请**认！真！阅！读！** [ git 开发规范](https://everest.terraqt.ink/pages/viewpage.action?pageId=43746032) 和[ python 代码开发规范](https://everest.terraqt.ink/pages/viewpage.action?pageId=31242919)。
+为了避免不必要的返工和无效的工作，请**认！真！阅！读！** [ git 开发规范](https://everest.terraqt.ink/pages/viewpage.action?pageId=43746032) 和[ python 代码开发规范](https://everest.terraqt.ink/pages/viewpage.action?pageId=31242919)。

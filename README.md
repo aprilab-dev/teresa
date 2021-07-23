@@ -42,4 +42,4 @@ pip install -e $HOME/teresa
 
 ## Examples
 
-鉴于 teresa 依然是一个开发中的产品，所以还没有例子可以展示。teresa 的开发进度可以参考[这里](https://everest.terraqt.ink/pages/viewpage.action?pageId=43746233)。
+鉴于 `teresa` 依然是一个开发中的产品，所以还没有例子可以展示。`teresa` 的开发进度可以参考[这里](https://everest.terraqt.ink/pages/viewpage.action?pageId=43746233)。
