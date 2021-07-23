@@ -1,4 +1,4 @@
-from . import stack, coregistration
+import stack, coregistration
 
 slc_path = "/data/slc/cn_xian_s1_asc_iw"
 

@@ -1,6 +1,6 @@
 import abc
 import processor
-from . import stack, graphs
+import stack, graphs
 
 
 class Coregistration(abc.ABC):
@@ -46,8 +46,8 @@ class Sentinel1Coregistration(Coregistration):
             graph,
             subswath=f"IW{nsubswath}",
             polorization=self.polarization.upper(),
-            master_file=self.slc_pair.master.file,
-            slave_file=self.slc_pair.slave.file,
+            master_file=self.slc_pair.master.folder,
+            slave_file=self.slc_pair.slave.folder,
             output_path=self.output_path,
             dry_run=self.dry_run,
         )
