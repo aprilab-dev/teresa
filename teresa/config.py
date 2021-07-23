@@ -9,6 +9,6 @@ class Config:
 
 class LocalConfig(Config):
 
-    LOGGING_LEVEL = "DEBUG"
+    LOG_LEVEL = "DEBUG"
     SNAP_GPT_CACHE_SIZE = "16G"
     SNAP_GPT_NTHREADS = os.cpu_count()
