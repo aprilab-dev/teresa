@@ -4,6 +4,7 @@ import subprocess
 from typing import Union
 from config import Config, LocalConfig
 
+logging.basicConfig(level=LocalConfig.LOG_LEVEL)
 
 class GptError(RuntimeError):
     pass  # categorize GPTERROR
