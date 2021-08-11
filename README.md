@@ -40,6 +40,8 @@ pip install -e $HOME/teresa
 
 现在你就可以使用 `teresa` 了。`teresa/example.py` 中有一个 work in progress (WIP) 的例子。
 
-## Examples
+## 示例
 
 鉴于 `teresa` 依然是一个开发中的产品，所以还没有例子可以展示。`teresa` 的开发进度可以参考[这里](https://everest.terraqt.ink/pages/viewpage.action?pageId=43746233)。
+
+
