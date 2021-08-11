@@ -1,0 +1,161 @@
+<graph id="Graph">
+  <version>1.0</version>
+  <node id="Read">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>${product1}</file>
+    </parameters>
+  </node>
+  <node id="Read(2)">
+    <operator>Read</operator>
+    <sources/>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>${product2}</file>
+    </parameters>
+  </node>
+  <node id="TOPSAR-Split">
+    <operator>TOPSAR-Split</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <subswath>${subswath}</subswath>
+      <selectedPolarisations>${Polarisations}</selectedPolarisations>
+      <firstBurstIndex>${burst0}</firstBurstIndex>
+      <lastBurstIndex>${burst1}</lastBurstIndex>
+      <wktAoi/>
+    </parameters>
+  </node>
+  <node id="TOPSAR-Split(2)">
+    <operator>TOPSAR-Split</operator>
+    <sources>
+      <sourceProduct refid="Read(2)"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <subswath>${subswath}</subswath>
+      <selectedPolarisations>${Polarisations}</selectedPolarisations>
+      <firstBurstIndex>${burst0}</firstBurstIndex>
+      <lastBurstIndex>${burst1}</lastBurstIndex>
+      <wktAoi/>
+    </parameters>
+  </node>
+  <node id="Apply-Orbit-File">
+    <operator>Apply-Orbit-File</operator>
+    <sources>
+      <sourceProduct refid="TOPSAR-Split"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <orbitType>Sentinel Precise (Auto Download)</orbitType>
+      <polyDegree>3</polyDegree>
+      <continueOnFail>false</continueOnFail>
+    </parameters>
+  </node>
+  <node id="Apply-Orbit-File(2)">
+    <operator>Apply-Orbit-File</operator>
+    <sources>
+      <sourceProduct refid="TOPSAR-Split(2)"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <orbitType>Sentinel Precise (Auto Download)</orbitType>
+      <polyDegree>3</polyDegree>
+      <continueOnFail>false</continueOnFail>
+    </parameters>
+  </node>
+  <node id="Back-Geocoding">
+    <operator>Back-Geocoding</operator>
+    <sources>
+      <sourceProduct refid="Apply-Orbit-File"/>
+      <sourceProduct.1 refid="Apply-Orbit-File(2)"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <demName>SRTM 1Sec HGT</demName>
+      <demResamplingMethod>BICUBIC_INTERPOLATION</demResamplingMethod>
+      <externalDEMFile/>
+      <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+      <resamplingType>BISINC_5_POINT_INTERPOLATION</resamplingType>
+      <maskOutAreaWithoutElevation>true</maskOutAreaWithoutElevation>
+      <outputRangeAzimuthOffset>false</outputRangeAzimuthOffset>
+      <outputDerampDemodPhase>false</outputDerampDemodPhase>
+      <disableReramp>false</disableReramp>
+    </parameters>
+  </node>
+  <node id="Enhanced-Spectral-Diversity">
+    <operator>Enhanced-Spectral-Diversity</operator>
+    <sources>
+      <sourceProduct refid="Back-Geocoding"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <fineWinWidthStr>512</fineWinWidthStr>
+      <fineWinHeightStr>512</fineWinHeightStr>
+      <fineWinAccAzimuth>16</fineWinAccAzimuth>
+      <fineWinAccRange>16</fineWinAccRange>
+      <fineWinOversampling>128</fineWinOversampling>
+      <xCorrThreshold>0.1</xCorrThreshold>
+      <cohThreshold>0.3</cohThreshold>
+      <numBlocksPerOverlap>10</numBlocksPerOverlap>
+      <esdEstimator>Periodogram</esdEstimator>
+      <weightFunc>Inv Quadratic</weightFunc>
+      <temporalBaselineType>Number of images</temporalBaselineType>
+      <maxTemporalBaseline>4</maxTemporalBaseline>
+      <integrationMethod>L1 and L2</integrationMethod>
+      <doNotWriteTargetBands>false</doNotWriteTargetBands>
+      <useSuppliedRangeShift>false</useSuppliedRangeShift>
+      <overallRangeShift>0.0</overallRangeShift>
+      <useSuppliedAzimuthShift>false</useSuppliedAzimuthShift>
+      <overallAzimuthShift>0.0</overallAzimuthShift>
+    </parameters>
+  </node>
+  <node id="TOPSAR-Deburst">
+    <operator>TOPSAR-Deburst</operator>
+    <sources>
+      <sourceProduct refid="Enhanced-Spectral-Diversity"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations/>
+    </parameters>
+  </node>
+  <node id="Write">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="TOPSAR-Deburst"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>${output}</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+  <applicationData id="Presentation">
+    <Description/>
+    <node id="Read">
+            <displayPosition x="47.0" y="83.0"/>
+    </node>
+    <node id="Read(2)">
+      <displayPosition x="48.0" y="184.0"/>
+    </node>
+    <node id="TOPSAR-Split">
+      <displayPosition x="131.0" y="88.0"/>
+    </node>
+    <node id="TOPSAR-Split(2)">
+      <displayPosition x="127.0" y="185.0"/>
+    </node>
+    <node id="Apply-Orbit-File">
+      <displayPosition x="235.0" y="94.0"/>
+    </node>
+    <node id="Apply-Orbit-File(2)">
+      <displayPosition x="244.0" y="185.0"/>
+    </node>
+    <node id="Back-Geocoding">
+      <displayPosition x="357.0" y="136.0"/>
+    </node>
+    <node id="Enhanced-Spectral-Diversity">
+      <displayPosition x="470.0" y="139.0"/>
+    </node>
+    <node id="TOPSAR-Deburst">
+      <displayPosition x="650.0" y="142.0"/>
+    </node>
+    <node id="Write">
+            <displayPosition x="763.0" y="144.0"/>
+    </node>
+  </applicationData>
+</graph>

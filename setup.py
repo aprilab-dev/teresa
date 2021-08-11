@@ -26,11 +26,11 @@ setup(
     description="[TE]rraquanta's software for [RE]gistration and [SA]mpling",
     long_description=readme,
     author="TerraQuanta",
-    url="https://git.terraqt.dev/dev.fringe/teresa",
+    url="https://git.terraqt.io/arcticwind/seafringe/teresa/",
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=install_requires,
-    setup_requires=["pytest-runner", "flake8"],
+    setup_requires=["pytest-runner", "pylint"],
     tests_require=tests_require,
     extras_require={
 	"test": tests_require, 
