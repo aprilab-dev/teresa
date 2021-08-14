@@ -16,7 +16,6 @@ python3 -m pytest tests
 当你向 `teresa` 贡献代码时，请参考以下步骤：
 
 ```bash
-git remote update
 git checkout develop  # start from develop branch
 git pull --all # 更新 develop branch！（你也可以从 main 来 checkout，记得也要先 pull）
 git checkout -b FRINGE-XX_new_feature_here  # checkout new branch, new branch name must correspond to a jira ticket number
