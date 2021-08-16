@@ -25,13 +25,27 @@ git checkout -b FRINGE-XX_new_feature_here  # checkout new branch, new branch na
 
 ```bash
 git add *
-git commit -m "Your commit message"
+git commit -m "FRINGE-XX Your commit message"  # 记得在 commit message 前加 ticket ID
 ```
 
 然后把你的 branch 推到 git：
 
 ```bash
 git push --set-upstream origin FRINGE-XX_new_feature_here  # push to upstream
+```
+
+## 解决冲突策略（Merge Conflicts）
+
+我们解决 merge conflict 的策略大体是：每个人需要在提交 merge request 时，自行解决所有的 merge conflict。`main` 和 `develop` 分支的管理员不负责解决其他分支的 merge conflict。为了尽可能地避免冲突，推荐采用 rebase 策略，即：
+
+```bash
+git checkout develop  # 重新切回到 develop 或 main 分支
+git pull --all  # 更新该分支
+git checkout FRINGE-XX_new_feature_here  # 切回你需要做 MR 的分支
+git rebase develop  # rebase，如果过程中有 merge conflict 则需自行解决
+# 解决 rebase 过程中遇到的 merge conflict
+git push --force-with-lease origin FRINGE-XX_new_feature_here  # 重新 push 你 rebase 后的分支
+# 此时再提交 MR，就不会有 merge conflicts 了。
 ```
 
 ## 开发规范
