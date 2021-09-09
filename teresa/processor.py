@@ -1,10 +1,10 @@
 import abc
-import logging
 import subprocess
 from typing import Union
+from log import log_config
 from config import Config, LocalConfig
 
-logging.basicConfig(level=LocalConfig.LOG_LEVEL)
+logger = log_config()
 
 class GptError(RuntimeError):
     pass  # categorize GPTERROR
@@ -36,7 +36,7 @@ class GptProcessor(Processor):
         command = "".join(params)
 
         try:
-            logging.info("Run: %s", command)
+            logger.info("GPT-DRY-RUN: %s", command)
             if dry_run:
                 return
             subprocess.run(command, shell=True, check=True, stderr=subprocess.PIPE)

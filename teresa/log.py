@@ -1,33 +1,18 @@
+import os
 import logging
-from . import config
+import logging.config
+from datetime import datetime
 
-def basic_config() -> None:
-    if (sys.stdout.isatty() or sys.stdin.isatty()) and not os.getenv("SLURM_NTASKS", 0):
-        logging_format = "%(asctime)s - [%(levelname)s] %(message)s"
-    else:
-        logging_format = "[%(hostname)s] %(asctime)s - [%(levelname)s] %(message)s"
+# define log filename based on dates
+LOG_FNAME = "teresa_{:%Y-%m-%d_%H-%M-%S}.log".format(datetime.now())
 
-    logging_settings = {
-        "version": 1,
-        "disable_exiting_loggers": False,
-        "filters": {"hostname": {"()": f"{__name__}.HostnameFilter"}},
-        "formatters": {"default": {"format": logging_format, "datefmt": "%Y-%m-%d %H:%M:%S"}},
-        "handlers": {
-            "default": {
-                "level": config.LOGGING_LEVEL,
-                "formatter": "default",
-                "class": "logging.StreamHandler",
-                # Keep stream compatible with the click stdout
-                "stream": click.get_text_stream('stdout'),  # "ext://sys.stdout",
-                # "stream": "ext://sys.stdout",
-                "filters": ["hostname"],
-            }
-        },
-        "loggers": {
-            "": {
-                "handlers": ["default"],
-            }
-        },
-    }
 
-    logging.config.dictConfig(logging_settings)
+def log_config():
+    # https://stackoverflow.com/questions/13649664/how-to-use-logging-with-pythons-fileconfig-and-configure-the-logfile-filename
+    logging.config.fileConfig(
+        fname=os.path.join(os.path.abspath(os.path.dirname(__file__)), "log.conf"),
+        defaults={"logfilename": LOG_FNAME},
+    )
+    logger = logging.getLogger("sLogger")
+
+    return logger
