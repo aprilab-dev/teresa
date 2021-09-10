@@ -46,7 +46,7 @@ pip install -e $HOME/teresa
 
 ## 设置
 
-因为 `teresa` 是一个关于 `gpt` 的 wrapper，所以我们需要设置 `gpt` 的路径。*部分*默认的 `gpt` 已经设置在了系统环境变量 `SNAP_GPT_EXECUTABLE` 中，你可以用以下方法查看：
+因为 `teresa` 是一个关于 `gpt` 的 wrapper，所以我们需要设置 `gpt` 的路径。*部分*默认的 `gpt` 已经设置在了系统环境变量 `SNAP_GPT_EXECUTABLE` 中（通常是在 `/etc/profile.d/tq.sh` 中定义），你可以用以下方法查看：
 
 ```bash
 >>> echo $SNAP_GPT_EXECUTABLE
@@ -57,7 +57,7 @@ pip install -e $HOME/teresa
 
 ```bash
 # .bashrc
->>> SNAP_GPT_EXECUTABLE="/your/own/path/of/gpt"
+>>> export SNAP_GPT_EXECUTABLE="/your/own/path/of/gpt"
 ```
 
 然后运行 `source .bashrc` 命令激活该环境变量。
