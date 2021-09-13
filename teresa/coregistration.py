@@ -1,6 +1,6 @@
 import abc
 import processor
-import stack, graphs
+import graphs
 
 
 class Coregistration(abc.ABC):
@@ -13,7 +13,7 @@ class Sentinel1Coregistration(Coregistration):
     # concrete creater
     def __init__(
         self,
-        slc_pair: stack.SlcPair,
+        slc_pair,  # TODO: add typehint
         output_path: str,
         polarization: str = "vv",
         dry_run: bool = False,
