@@ -6,6 +6,7 @@ from .log import log_config
 
 logger = log_config()
 
+
 class Coregistration(abc.ABC):
 
     @abc.abstractmethod
