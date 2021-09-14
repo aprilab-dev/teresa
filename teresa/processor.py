@@ -1,10 +1,12 @@
 import abc
 import subprocess
 from typing import Union
-from log import log_config
-from config import Config, LocalConfig
+
+from .log import log_config
+from .config import Config, LocalConfig
 
 logger = log_config()
+
 
 class GptError(RuntimeError):
     pass  # categorize GPTERROR

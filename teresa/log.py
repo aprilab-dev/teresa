@@ -14,5 +14,7 @@ def log_config():
         defaults={"logfilename": LOG_FNAME},
     )
     logger = logging.getLogger("sLogger")
+    # https://stackoverflow.com/questions/53125305/testing-logging-output-with-pytest
+    logger.propagate = True
 
     return logger

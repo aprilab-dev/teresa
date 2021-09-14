@@ -1,6 +1,7 @@
+import os
 import abc
-import processor
-import graphs
+from . import graphs
+from . import processor
 
 
 class Coregistration(abc.ABC):
@@ -9,19 +10,20 @@ class Coregistration(abc.ABC):
     def coregister(self):
         ...
 
+
 class Sentinel1Coregistration(Coregistration):
     # concrete creater
     def __init__(
         self,
         slc_pair,  # TODO: add typehint
-        output_path: str,
+        output_dir: str,
         polarization: str = "vv",
         dry_run: bool = False,
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
         self.graph = "None"
         self.slc_pair = slc_pair
-        self.output_path = output_path
+        self.output_dir = output_dir
         self.polarization = polarization
         self.dry_run = dry_run
         self._processor = coreg_processor  # interface
@@ -39,16 +41,21 @@ class Sentinel1Coregistration(Coregistration):
     def _coregister_subswath(self, nsubswath):
         """TODO: add description."""
 
-        graph = graphs.GptGraphS1Coreg.generate()
+        graph = graphs.GptGraphS1Coreg.generate(self.slc_pair)
+
+        # format gpt input
+        master_files = ",".join([source for source in self.slc_pair.master.source])
+        slave_files = ",".join([source for source in self.slc_pair.slave.source])
+        output_path = os.path.join(self.output_dir, "coregistration", f"iw{nsubswath}")
 
         # Execute the actual coregistration
         self._processor.process(
             graph,
             subswath=f"IW{nsubswath}",
             polorization=self.polarization.upper(),
-            master_file=self.slc_pair.master.folder,
-            slave_file=self.slc_pair.slave.folder,
-            output_path=self.output_path,
+            master_file=master_files,
+            slave_file=slave_files,
+            output_path=output_path,
             dry_run=self.dry_run,
         )
 
