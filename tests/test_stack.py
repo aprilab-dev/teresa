@@ -31,3 +31,4 @@ def test_sentinel1slcstack_load(test_create_file):
 def test_sentinel1slcstack_coregister(test_create_file):
     tmp_stack = stack.Sentinel1SlcStack(sourcedir=test_create_file).load()
     tmp_stack.coregister(master="20210401", output=test_create_file)
+    # TODO: fill in the blank

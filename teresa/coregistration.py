@@ -2,7 +2,9 @@ import os
 import abc
 from . import graphs
 from . import processor
+from .log import log_config
 
+logger = log_config()
 
 class Coregistration(abc.ABC):
 
@@ -47,6 +49,12 @@ class Sentinel1Coregistration(Coregistration):
         master_files = ",".join([source for source in self.slc_pair.master.source])
         slave_files = ",".join([source for source in self.slc_pair.slave.source])
         output_path = os.path.join(self.output_dir, "coregistration", f"iw{nsubswath}")
+
+        logger.info(
+            "COREGISTERING master %s and slave %s:",
+            self.slc_pair.master.date,
+            self.slc_pair.slave.date
+        )
 
         # Execute the actual coregistration
         self._processor.process(
