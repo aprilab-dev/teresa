@@ -7,14 +7,9 @@ class GptGraph():
 class GptGraphS1Coreg(GptGraph):
     @staticmethod
     def generate(slc_pair):
-        if len(slc_pair.master.source) > 1 and len(slc_pair.slave.source) > 1:
-            return "graphs/coregister_subswath_multiple_slice.xml"
-        if len(slc_pair.master.source) > 1 and len(slc_pair.slave.source) == 1:
-            return "graphs/coregister_subswath_single_reference_slice.xml"
-        if len(slc_pair.master.source) == 1 and len(slc_pair.slave.source) > 1:
-            return "graphs/coregister_subswath_single_secondary_slice.xml"
-
-        return "graphs/coregister_subswath_single_slice.xml"  # both are single slice
+        mtype = "single" if len(slc_pair.master.source) == 1 else "multiple"
+        stype = "single" if len(slc_pair.slave.source) == 1 else "multiple"
+        return f"graphs/coregister_subswath_{mtype}_master_{stype}_slave.xml"
 
 
 class GptGraphS1Merge(GptGraph):

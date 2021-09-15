@@ -1,8 +1,15 @@
+from __future__ import annotations
+
 import os
 import abc
 from . import graphs
-from . import processor
 from .log import log_config
+
+# https://stackoverflow.com/questions/46641078/how-to-avoid-circular-dependency-caused-by-type-hinting-of-pointer-attributes-in
+import typing
+if typing.TYPE_CHECKING:
+    from . import stack
+    from . import processor
 
 logger = log_config()
 
@@ -18,7 +25,7 @@ class Sentinel1Coregistration(Coregistration):
     # concrete creater
     def __init__(
         self,
-        slc_pair,  # TODO: add typehint
+        slc_pair: stack.SlcPair,
         output_dir: str,
         polarization: str = "vv",
         dry_run: bool = False,
