@@ -3,13 +3,13 @@ from __future__ import annotations
 import os
 import abc
 from . import graphs
+from . import processor
 from .log import log_config
 
 # https://stackoverflow.com/questions/46641078/how-to-avoid-circular-dependency-caused-by-type-hinting-of-pointer-attributes-in
 import typing
 if typing.TYPE_CHECKING:
     from . import stack
-    from . import processor
 
 logger = log_config()
 
@@ -69,8 +69,8 @@ class Sentinel1Coregistration(Coregistration):
             graph,
             subswath=f"IW{nsubswath}",
             polorization=self.polarization.upper(),
-            master_file=master_files,
-            slave_file=slave_files,
+            master_files=master_files,
+            slave_files=slave_files,
             output_path=output_path,
             dry_run=self.dry_run,
         )

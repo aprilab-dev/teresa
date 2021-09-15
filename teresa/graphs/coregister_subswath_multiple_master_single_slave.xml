@@ -4,7 +4,7 @@
     <operator>ProductSet-Reader</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <fileList>${input_reference_products}</fileList>
+      <fileList>${master_files}</fileList>
     </parameters>
   </node>
   <node id="SliceAssembly">
@@ -13,14 +13,14 @@
       <sourceProduct.2 refid="ProductSet-Reader"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>${pol}</selectedPolarisations>
+      <selectedPolarisations>${polorization}</selectedPolarisations>
     </parameters>
   </node>
   <node id="Read">
     <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${input_secondary_products}</file>
+      <file>${slave_files}</file>
     </parameters>
   </node>
   <node id="TOPSAR-Split">
@@ -30,10 +30,11 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <subswath>${subswath}</subswath>
-      <selectedPolarisations>${pol}</selectedPolarisations>
+      <selectedPolarisations>${polorization}</selectedPolarisations>
       <firstBurstIndex>1</firstBurstIndex>
       <lastBurstIndex>999</lastBurstIndex>
-      <wktAoi>${wkt_aoi}</wktAoi>
+      <wktAoi/>
+      <!-- <wktAoi>${wkt_aoi}</wktAoi> -->
     </parameters>
   </node>
   <node id="TOPSAR-Split(2)">
@@ -46,7 +47,8 @@
       <selectedPolarisations>${pol}</selectedPolarisations>
       <firstBurstIndex>1</firstBurstIndex>
       <lastBurstIndex>999</lastBurstIndex>
-      <wktAoi>${wkt_aoi}</wktAoi>
+      <wktAoi/>
+      <!-- <wktAoi>${wkt_aoi}</wktAoi> -->
     </parameters>
   </node>
   <node id="Apply-Orbit-File">
@@ -78,12 +80,12 @@
       <sourceProduct.1 refid="Apply-Orbit-File(2)"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <demName>${dem_name}</demName>
+      <demName>SRTM 1Sec HGT</demName>
       <demResamplingMethod>BICUBIC_INTERPOLATION</demResamplingMethod>
       <externalDEMFile/>
       <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
       <resamplingType>BISINC_5_POINT_INTERPOLATION</resamplingType>
-      <maskOutAreaWithoutElevation>false</maskOutAreaWithoutElevation>
+      <maskOutAreaWithoutElevation>true</maskOutAreaWithoutElevation>
       <outputRangeAzimuthOffset>false</outputRangeAzimuthOffset>
       <outputDerampDemodPhase>true</outputDerampDemodPhase>
       <disableReramp>false</disableReramp>
@@ -103,9 +105,9 @@
       <xCorrThreshold>0.1</xCorrThreshold>
       <cohThreshold>0.15</cohThreshold>
       <numBlocksPerOverlap>10</numBlocksPerOverlap>
-      <useSuppliedRangeShift>true</useSuppliedRangeShift>
+      <useSuppliedRangeShift>false</useSuppliedRangeShift>
       <overallRangeShift>0.0</overallRangeShift>
-      <useSuppliedAzimuthShift>true</useSuppliedAzimuthShift>
+      <useSuppliedAzimuthShift>false</useSuppliedAzimuthShift>
       <overallAzimuthShift>0.0</overallAzimuthShift>
     </parameters>
   </node>
@@ -115,7 +117,7 @@
       <sourceProduct refid="Enhanced-Spectral-Diversity"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>${pol}</selectedPolarisations>
+      <selectedPolarisations>${polorization}</selectedPolarisations>
     </parameters>
   </node>
   <node id="Write">
@@ -124,7 +126,7 @@
       <sourceProduct refid="TOPSAR-Deburst"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${output_product}</file>
+      <file>${output_path}</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>

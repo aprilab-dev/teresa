@@ -4,14 +4,14 @@
     <operator>ProductSet-Reader</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <fileList>${master_file}</fileList>
+      <fileList>${master_files}</fileList>
     </parameters>
   </node>
   <node id="ProductSet-Reader(2)">
     <operator>ProductSet-Reader</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <fileList>${slave_file}</fileList>
+      <fileList>${slave_files}</fileList>
     </parameters>
   </node>
   <node id="SliceAssembly">
@@ -42,6 +42,7 @@
       <selectedPolarisations>${polorization}</selectedPolarisations>
       <firstBurstIndex>1</firstBurstIndex>
       <lastBurstIndex>999</lastBurstIndex>
+      <wktAoi/>
     </parameters>
   </node>
   <node id="TOPSAR-Split(2)">
@@ -54,6 +55,7 @@
       <selectedPolarisations>${polorization}</selectedPolarisations>
       <firstBurstIndex>1</firstBurstIndex>
       <lastBurstIndex>999</lastBurstIndex>
+      <wktAoi/>
     </parameters>
   </node>
   <node id="Apply-Orbit-File">

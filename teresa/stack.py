@@ -1,8 +1,8 @@
 import re
 import os
 import abc
-from . import coregistration
-from .log import log_config
+from teresa import coregistration
+from teresa.log import log_config
 
 logger = log_config()
 
@@ -63,4 +63,4 @@ class Sentinel1SlcStack(SlcStack):
         for slave, _ in self.slc.items():
             SlcPair(
                 master=self.slc[master], slave=self.slc[slave]
-            ).coregister(output_dir=output, dry_run=True)
+            ).coregister(output_dir=output, dry_run=False)
