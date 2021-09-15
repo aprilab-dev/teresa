@@ -23,10 +23,10 @@ build-job:       # This job runs in the build stage, which runs first.
     - pip3 install -e .
     - pip3 install -e .[test] 
     - echo "Complete."
-  only:
-    - master
-    - develop
-    - merge_requests
+  # only:
+  #   - master
+  #   - develop
+  #   - merge_requests
 
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
@@ -34,10 +34,10 @@ unit-test-job:   # This job runs in the test stage.
     - echo "Running unit tests..."
     - python3 setup.py test
     - echo "Complete."
-  only:
-    - master
-    - develop
-    - merge_requests
+  # only:
+  #   - master
+  #   - develop
+  #   - merge_requests
 
 lint-test-job:   # This job also runs in the test stage.
   stage: test    # It can run at the same time as unit-test-job (in parallel).
@@ -45,17 +45,17 @@ lint-test-job:   # This job also runs in the test stage.
     - echo "Linting code..."
     - sleep 10
     - echo "Not really doing anything at this moment."
-  only:
-    - master
-    - develop
-    - merge_requests
+  # only:
+  #   - master
+  #   - develop
+  #   - merge_requests
 
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
   script:
     - echo "Not really doing anything at this moment."
     - echo "Concrete implementation will be added in the future."
-  only:
-    - master
-    - develop
-    - merge_requests
+  # only:
+  #   - master
+  #   - develop
+  #   - merge_requests
