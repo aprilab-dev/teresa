@@ -18,7 +18,7 @@ class SlcPair:
         self.master = master
         self.slave = slave
 
-    def coregister(self, output_dir: str, dry_run: bool = True):
+    def coregister(self, output_dir: str, dry_run: bool):
         # initialize a dictionary to store the coregistration results
         coregistration_settings = {"output_dir": output_dir, "dry_run": dry_run}
         coregistration.Sentinel1Coregistration(
@@ -45,7 +45,7 @@ class Sentinel1SlcStack(SlcStack):
                 # get the date from the filename
                 acquisition = re.search(
                     r"S1[A|B]_IW_SLC_.+(20\d{6})T\d{6}_20\d{6}T\d{6}_.+", file
-                ).group(1)
+                ).group(1)  # type: ignore
                 # check if key exist
                 if acquisition not in self.slc:
                     self.slc[acquisition] = SlcImage(date=acquisition)

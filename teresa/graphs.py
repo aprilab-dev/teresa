@@ -1,15 +1,21 @@
+from __future__ import annotations
+
 import os
+import typing
+
+if typing.TYPE_CHECKING:
+    from . import stack
 
 
 class GptGraph():
-    def select_graph(self):
+    def generate(self):
         # not implemented
         ...
 
 
 class GptGraphS1Coreg(GptGraph):
     @staticmethod
-    def generate(slc_pair):
+    def generate(slc_pair: stack.SlcPair) -> str:
         mtype = "single" if len(slc_pair.master.source) == 1 else "multiple"
         stype = "single" if len(slc_pair.slave.source) == 1 else "multiple"
         # convert relative path to absolute path
@@ -21,9 +27,10 @@ class GptGraphS1Coreg(GptGraph):
 
 class GptGraphS1Merge(GptGraph):
     @staticmethod
-    def generate() -> str:
-        return "graphs/merge_subswath.xml"
-
+    def generate():
+        # return "graphs/merge_subswath.xml"
+        # not implemented
+        ...
 
 class GptGraphGeneral(GptGraph):
     # not implemented
