@@ -56,11 +56,19 @@ class Sentinel1SlcStack(SlcStack):
 
         return self
 
-    def coregister(self, master: str, output: str, update: bool = False) -> None:
+    def coregister(
+        self,
+        master: str,
+        output: str,
+        dry_run: bool = True,
+        update: bool = False
+    ) -> None:
         # check if master is in the slc dict
         if master not in self.slc:
             logger.exception(f"The master date [{master}] is not in the stack.")
         for slave, _ in self.slc.items():
+            if slave == master:
+                continue  # doesn't make sense to coregister master with itself
             SlcPair(
                 master=self.slc[master], slave=self.slc[slave]
-            ).coregister(output_dir=output, dry_run=False)
+            ).coregister(output_dir=output, dry_run=dry_run)

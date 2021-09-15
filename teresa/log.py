@@ -15,6 +15,6 @@ def log_config():
     )
     logger = logging.getLogger("sLogger")
     # https://stackoverflow.com/questions/53125305/testing-logging-output-with-pytest
-    logger.propagate = True
+    # logger.propagate = True
 
     return logger

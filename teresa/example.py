@@ -8,5 +8,5 @@ output = (
     stack
     .Sentinel1SlcStack(sourcedir=slc_dir)
     .load()
-    .coregister(output=coregistered_dir, master=master)
+    .coregister(output=coregistered_dir, master=master, dry_run=False)
 )

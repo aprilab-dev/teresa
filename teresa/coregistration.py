@@ -45,7 +45,7 @@ class Sentinel1Coregistration(Coregistration):
     def _coregister(self):
         # the lofic for swath coregistration.
         # The concrete implementation is actually in _subswath_coregister.
-        for nsubswath in range(0, 3):
+        for nsubswath in range(1, 4):  # starts from 1
             self._coregister_subswath(nsubswath)
 
     def _coregister_subswath(self, nsubswath):
@@ -59,9 +59,10 @@ class Sentinel1Coregistration(Coregistration):
         output_path = os.path.join(self.output_dir, "coregistration", f"iw{nsubswath}")
 
         logger.info(
-            "COREGISTERING master %s and slave %s:",
+            "COREGISTERING master %s and slave %s for swath IW%s:",
             self.slc_pair.master.date,
-            self.slc_pair.slave.date
+            self.slc_pair.slave.date,
+            nsubswath
         )
 
         # Execute the actual coregistration
