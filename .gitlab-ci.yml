@@ -8,6 +8,8 @@
 #
 # For more information, see: https://docs.gitlab.com/ee/ci/yaml/README.html#stages
 
+image: python:3.8-slim
+
 stages:          # List of stages for jobs, and their order of execution
   - build
   - test
@@ -16,25 +18,44 @@ stages:          # List of stages for jobs, and their order of execution
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
-    - echo "Compiling the code..."
-    - echo "Compile complete."
+    - echo "Install teresa and its dependencies..."
+    - pip3 install --upgrade pip
+    - pip3 install -e .
+    - pip3 install -e .[test] 
+    - echo "Complete."
+  only:
+    - master
+    - develop
+    - merge_requests
 
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   script:
-    - echo "Running unit tests... This will take about 60 seconds."
-    - sleep 60
-    - echo "Code coverage is 90%"
+    - echo "Running unit tests..."
+    - python3 setup.py test
+    - echo "Complete."
+  only:
+    - master
+    - develop
+    - merge_requests
 
 lint-test-job:   # This job also runs in the test stage.
   stage: test    # It can run at the same time as unit-test-job (in parallel).
   script:
-    - echo "Linting code... This will take about 10 seconds."
+    - echo "Linting code..."
     - sleep 10
-    - echo "No lint issues found."
+    - echo "Not really doing anything at this moment."
+  only:
+    - master
+    - develop
+    - merge_requests
 
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
   script:
-    - echo "Deploying application..."
-    - echo "Application successfully deployed."
+    - echo "Not really doing anything at this moment."
+    - echo "Concrete implementation will be added in the future."
+  only:
+    - master
+    - develop
+    - merge_requests
