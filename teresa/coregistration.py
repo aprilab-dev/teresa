@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import abc
 from . import graphs
-from . import processor
 from .log import log_config
 
 # https://stackoverflow.com/questions/46641078/how-to-avoid-circular-dependency-caused-by-type-hinting-of-pointer-attributes-in
