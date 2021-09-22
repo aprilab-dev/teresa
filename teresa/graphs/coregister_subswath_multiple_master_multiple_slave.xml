@@ -1,39 +1,48 @@
 <graph id="Graph">
   <version>1.0</version>
-  <node id="Read">
-    <operator>Read</operator>
+  <node id="ProductSet-Reader">
+    <operator>ProductSet-Reader</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${input_reference_products}</file>
+      <fileList>${master_files}</fileList>
     </parameters>
   </node>
   <node id="ProductSet-Reader(2)">
     <operator>ProductSet-Reader</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <fileList>${input_secondary_products}</fileList>
+      <fileList>${slave_files}</fileList>
+    </parameters>
+  </node>
+  <node id="SliceAssembly">
+    <operator>SliceAssembly</operator>
+    <sources>
+      <sourceProduct.2 refid="ProductSet-Reader"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations>${polorization}</selectedPolarisations>
     </parameters>
   </node>
   <node id="SliceAssembly(2)">
     <operator>SliceAssembly</operator>
     <sources>
-      <sourceProduct.1 refid="ProductSet-Reader(2)"/>
+      <sourceProduct.2 refid="ProductSet-Reader(2)"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>${pol}</selectedPolarisations>
+      <selectedPolarisations>${polorization}</selectedPolarisations>
     </parameters>
   </node>
   <node id="TOPSAR-Split">
     <operator>TOPSAR-Split</operator>
     <sources>
-      <sourceProduct refid="Read"/>
+      <sourceProduct refid="SliceAssembly"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <subswath>${subswath}</subswath>
-      <selectedPolarisations>${pol}</selectedPolarisations>
+      <selectedPolarisations>${polorization}</selectedPolarisations>
       <firstBurstIndex>1</firstBurstIndex>
       <lastBurstIndex>999</lastBurstIndex>
-      <wktAoi>${wkt_aoi}</wktAoi>
+      <wktAoi/>
     </parameters>
   </node>
   <node id="TOPSAR-Split(2)">
@@ -43,10 +52,10 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <subswath>${subswath}</subswath>
-      <selectedPolarisations>${pol}</selectedPolarisations>
+      <selectedPolarisations>${polorization}</selectedPolarisations>
       <firstBurstIndex>1</firstBurstIndex>
       <lastBurstIndex>999</lastBurstIndex>
-      <wktAoi>${wkt_aoi}</wktAoi>
+      <wktAoi/>
     </parameters>
   </node>
   <node id="Apply-Orbit-File">
@@ -78,12 +87,12 @@
       <sourceProduct.1 refid="Apply-Orbit-File(2)"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <demName>${dem_name}</demName>
+      <demName>SRTM 1Sec HGT</demName>
       <demResamplingMethod>BICUBIC_INTERPOLATION</demResamplingMethod>
       <externalDEMFile/>
       <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
       <resamplingType>BISINC_5_POINT_INTERPOLATION</resamplingType>
-      <maskOutAreaWithoutElevation>false</maskOutAreaWithoutElevation>
+      <maskOutAreaWithoutElevation>true</maskOutAreaWithoutElevation>
       <outputRangeAzimuthOffset>false</outputRangeAzimuthOffset>
       <outputDerampDemodPhase>true</outputDerampDemodPhase>
       <disableReramp>false</disableReramp>
@@ -103,9 +112,9 @@
       <xCorrThreshold>0.1</xCorrThreshold>
       <cohThreshold>0.15</cohThreshold>
       <numBlocksPerOverlap>10</numBlocksPerOverlap>
-      <useSuppliedRangeShift>true</useSuppliedRangeShift>
+      <useSuppliedRangeShift>false</useSuppliedRangeShift>
       <overallRangeShift>0.0</overallRangeShift>
-      <useSuppliedAzimuthShift>true</useSuppliedAzimuthShift>
+      <useSuppliedAzimuthShift>false</useSuppliedAzimuthShift>
       <overallAzimuthShift>0.0</overallAzimuthShift>
     </parameters>
   </node>
@@ -115,7 +124,7 @@
       <sourceProduct refid="Enhanced-Spectral-Diversity"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <selectedPolarisations>${pol}</selectedPolarisations>
+      <selectedPolarisations>${polorization}</selectedPolarisations>
     </parameters>
   </node>
   <node id="Write">
@@ -124,15 +133,12 @@
       <sourceProduct refid="TOPSAR-Deburst"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${output_product}</file>
+      <file>${output_path}</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>
   <applicationData id="Presentation">
     <Description/>
-    <node id="SliceAssembly(2)">
-      <displayPosition x="250.0" y="172.0"/>
-    </node>
     <node id="TOPSAR-Split">
       <displayPosition x="440.0" y="13.0"/>
     </node>
@@ -148,20 +154,26 @@
     <node id="Back-Geocoding">
       <displayPosition x="764.0" y="120.0"/>
     </node>
+    <node id="SliceAssembly">
+      <displayPosition x="255.0" y="87.0"/>
+    </node>
+    <node id="SliceAssembly(2)">
+      <displayPosition x="250.0" y="172.0"/>
+    </node>
     <node id="Enhanced-Spectral-Diversity">
       <displayPosition x="928.0" y="121.0"/>
     </node>
     <node id="TOPSAR-Deburst">
       <displayPosition x="1120.0" y="178.0"/>
     </node>
+    <node id="Write">
+            <displayPosition x="1154.0" y="123.0"/>
+    </node>
     <node id="ProductSet-Reader(2)">
       <displayPosition x="32.0" y="173.0"/>
     </node>
-    <node id="Read">
-      <displayPosition x="216.0" y="72.0"/>
-    </node>
-    <node id="Write">
-            <displayPosition x="1154.0" y="123.0"/>
+    <node id="ProductSet-Reader">
+      <displayPosition x="43.0" y="87.0"/>
     </node>
   </applicationData>
 </graph>

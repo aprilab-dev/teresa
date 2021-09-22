@@ -1,17 +1,12 @@
-import stack, coregistration
+import stack
 
-SLC_PATH = "/data/slc/cn_xian_s1_asc_iw"
+slc_dir = "/data/slc/cn_xian_s1_asc_iw"
+coregistered_dir = "/data/stack/cn_xian_s1_asc_iw"
+master = "20210401"
 
-# create a SlcPair object
-slc_pair = stack.SlcPair(
-    stack.Image("20210401", SLC_PATH),
-    stack.Image("20210519", SLC_PATH)
+output = (
+    stack
+    .Sentinel1SlcStack(sourcedir=slc_dir)
+    .load()
+    .coregister(output=coregistered_dir, master=master, dry_run=False)
 )
-
-# create a coregistration object
-s1_coreg = coregistration.Sentinel1Coregistration(
-    slc_pair=slc_pair,
-    output_path="/data/stacks/cn_xian_s1_asc_iw",
-    dry_run=True)
-
-s1_coreg.coregister()

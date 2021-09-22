@@ -1,10 +1,12 @@
 import abc
 import subprocess
 from typing import Union
-from log import log_config
-from config import Config, LocalConfig
+
+from .log import log_config
+from .config import Config, LocalConfig
 
 logger = log_config()
+
 
 class GptError(RuntimeError):
     pass  # categorize GPTERROR
@@ -27,12 +29,12 @@ class GptProcessor(Processor):
         self._cache_size = cache_size
         self._cores = cores
 
-    def process(self, graph: str, dry_run: bool = False, debug: bool = False, **kwargs):
+    def process(self, graph: str, dry_run: bool = False, debug: bool = True, **kwargs):
         params = ["{} {} ".format(self._executable, graph)]
-        params += ["-P{}='{}' ".format(name, value) for name, value in kwargs.items()]
         params.append("-c {} -q {} ".format(self._cache_size, self._cores))
         if debug:
-            params.append("-e")
+            params.append("-e ")
+        params += ["-P{}='{}' ".format(name, value) for name, value in kwargs.items()]
         command = "".join(params)
 
         try:
