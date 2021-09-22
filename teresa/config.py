@@ -1,4 +1,5 @@
 import os
+from psutil import virtual_memory
 
 
 class Config:
@@ -8,7 +9,8 @@ class Config:
 
 
 class LocalConfig(Config):
-
-    LOG_LEVEL = "DEBUG"
-    SNAP_GPT_CACHE_SIZE = "16G"
-    SNAP_GPT_NTHREADS = os.cpu_count()
+    # https://forum.step.esa.int/t/slow-performance-of-snap-for-tops-all-swath-ifg/17180/3
+    # https://forum.step.esa.int/t/gpt-and-snap-performance-parameters-exhaustive-manual-needed/8797
+    # gpt -c SNAP_GPT_CACHE_SIZE -p SNAP_GPT_NTHREADS
+    SNAP_GPT_CACHE_SIZE = f"{virtual_memory().total / 1024**3 * 0.70:.0f}G"
+    SNAP_GPT_NTHREADS = os.cpu_count()  # use all cores by default

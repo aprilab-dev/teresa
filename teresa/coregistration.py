@@ -1,6 +1,17 @@
+from __future__ import annotations
+
+import os
 import abc
-import processor
-import stack, graphs
+from . import graphs
+from . import processor
+from .log import log_config
+
+# https://stackoverflow.com/questions/46641078/how-to-avoid-circular-dependency-caused-by-type-hinting-of-pointer-attributes-in
+import typing
+if typing.TYPE_CHECKING:
+    from . import stack
+
+logger = log_config()
 
 
 class Coregistration(abc.ABC):
@@ -9,19 +20,20 @@ class Coregistration(abc.ABC):
     def coregister(self):
         ...
 
+
 class Sentinel1Coregistration(Coregistration):
     # concrete creater
     def __init__(
         self,
         slc_pair: stack.SlcPair,
-        output_path: str,
+        output_dir: str,
         polarization: str = "vv",
         dry_run: bool = False,
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
         self.graph = "None"
         self.slc_pair = slc_pair
-        self.output_path = output_path
+        self.output_dir = output_dir
         self.polarization = polarization
         self.dry_run = dry_run
         self._processor = coreg_processor  # interface
@@ -33,22 +45,34 @@ class Sentinel1Coregistration(Coregistration):
     def _coregister(self):
         # the lofic for swath coregistration.
         # The concrete implementation is actually in _subswath_coregister.
-        for nsubswath in range(0, 3):
+        for nsubswath in range(1, 4):  # starts from 1
             self._coregister_subswath(nsubswath)
 
     def _coregister_subswath(self, nsubswath):
         """TODO: add description."""
 
-        graph = graphs.GptGraphS1Coreg.generate()
+        graph = graphs.GptGraphS1Coreg.generate(self.slc_pair)
+
+        # format gpt input
+        master_files = ",".join([source for source in self.slc_pair.master.source])
+        slave_files = ",".join([source for source in self.slc_pair.slave.source])
+        output_path = os.path.join(self.output_dir, "coregistration", f"iw{nsubswath}")
+
+        logger.info(
+            "COREGISTERING master %s and slave %s for swath IW%s:",
+            self.slc_pair.master.date,
+            self.slc_pair.slave.date,
+            nsubswath
+        )
 
         # Execute the actual coregistration
         self._processor.process(
             graph,
             subswath=f"IW{nsubswath}",
             polorization=self.polarization.upper(),
-            master_file=self.slc_pair.master.folder,
-            slave_file=self.slc_pair.slave.folder,
-            output_path=self.output_path,
+            master_files=master_files,
+            slave_files=slave_files,
+            output_path=output_path,
             dry_run=self.dry_run,
         )
 
