@@ -1,11 +1,11 @@
 import stack, coregistration
 
-slc_path = "/data/slc/cn_xian_s1_asc_iw"
+SLC_PATH = "/data/slc/cn_xian_s1_asc_iw"
 
 # create a SlcPair object
 slc_pair = stack.SlcPair(
-    stack.Image("20210401", slc_path),
-    stack.Image("20210519", slc_path)
+    stack.Image("20210401", SLC_PATH),
+    stack.Image("20210519", SLC_PATH)
 )
 
 # create a coregistration object
