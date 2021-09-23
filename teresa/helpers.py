@@ -1,10 +1,15 @@
 from pypinyin import lazy_pinyin as pinyin
 import requests
-from log import log_config
+from .log import log_config
 
 logger = log_config()
 
 API_KEY = "B5EBZ-W2GCI-Q23GO-5RJTM-YRZL7-WJBHO"
+
+# define a customized API error
+class QQMapApiError(Exception):
+    def __init__(self, message):
+        self.message = message
 
 
 def latlon_to_city(lat: float, lon: float) -> str:
@@ -24,6 +29,7 @@ def latlon_to_city(lat: float, lon: float) -> str:
             "ERROR %s: https://lbs.qq.com/service/webService/webServiceGuide/status",
             content["message"],
         )
+        raise QQMapApiError(content["message"])
     if content["result"]["ad_info"]["nation_code"] != "156":
         return "ABOARD"
     
