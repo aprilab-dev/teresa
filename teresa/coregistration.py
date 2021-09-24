@@ -28,7 +28,7 @@ class Sentinel1Coregistration(Coregistration):
         slc_pair: stack.SlcPair,
         output_dir: str,
         polarization: str = "vv",
-        dry_run: bool = False,
+        dry_run: bool = True,
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
         self.graph = "None"
