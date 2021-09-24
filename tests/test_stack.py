@@ -1,34 +1,77 @@
+import os
 import pytest
-from teresa import stack
+from teresa import stack, log
 
 
-@pytest.fixture(autouse=True)
-def test_create_file(tmpdir):
-    """Create a temporary folder containing simulated S1 files.
-    """
-    test_slc_dir = tmpdir.mkdir("slc").mkdir("cn_xian_s1_asc_iw")
+def create_multiple_masters_multiple_slaves(tmpdir):
+    test_slc_dir = tmpdir.mkdir("multiple_masters_multiple_slaves")
     slcs = [
-        "S1A_IW_SLC__1SDV_20210401T104500_20210401T104527_037256_046373_4E43",
         "S1A_IW_SLC__1SDV_20210507T104527_20210507T104553_037781_047584_C9C5",
-        "S1A_IW_SLC__1SDV_20210401T104525_20210401T104552_037256_046373_5EE2",
-        "S1A_IW_SLC__1SDV_20210519T104502_20210519T104529_037956_047AD0_D69B",
         "S1A_IW_SLC__1SDV_20210507T104502_20210507T104529_037781_047584_0263",
-        "S1A_IW_SLC__1SDV_20210519T104527_20210519T104554_037956_047AD0_1750"
+        "S1A_IW_SLC__1SDV_20210519T104527_20210519T104554_037956_047AD0_1750",
+        "S1A_IW_SLC__1SDV_20210519T104502_20210519T104529_037956_047AD0_D69B",
     ]
     for slc in slcs:
-        test_slc_dir.join(slc).write("# sample SLC data")
-
-    return test_slc_dir
-
-
-def test_sentinel1slcstack_load(test_create_file):
-    tmp_stack = stack.Sentinel1SlcStack(sourcedir=test_create_file).load()
-    # iterate over a dict
-    for _, value in tmp_stack.slc.items():
-        assert len(value.source) == 2  # check if size of each slc is 2
+        test_slc_dir.join(slc).write("multiple masters, multiple slaves")
+    return test_slc_dir, {"20210507": 2, "20210519": 2}
 
 
-def test_sentinel1slcstack_coregister(test_create_file):
-    tmp_stack = stack.Sentinel1SlcStack(sourcedir=test_create_file).load()
-    tmp_stack.coregister(master="20210401", output=test_create_file)
-    # TODO: fill in the blank
+def create_multiple_masters_single_slave(tmpdir):
+    test_slc_dir = tmpdir.mkdir("multiple_masters_single_slave")
+    slcs = [
+        "S1A_IW_SLC__1SDV_20210507T104527_20210507T104553_037781_047584_C9C5",
+        "S1A_IW_SLC__1SDV_20210507T104502_20210507T104529_037781_047584_0263",
+        "S1A_IW_SLC__1SDV_20210519T104527_20210519T104554_037956_047AD0_1750",
+    ]
+    for slc in slcs:
+        test_slc_dir.join(slc).write("multiple masters, single slaves")
+    return test_slc_dir, {"20210507": 2, "20210519": 1}
+
+
+def create_single_master_multiple_slaves(tmpdir):
+    test_slc_dir = tmpdir.mkdir("single_master_multiple_slaves")
+    slcs = [
+        "S1A_IW_SLC__1SDV_20210507T104527_20210507T104553_037781_047584_C9C5",
+        "S1A_IW_SLC__1SDV_20210519T104527_20210519T104554_037956_047AD0_1750",
+        "S1A_IW_SLC__1SDV_20210519T104502_20210519T104529_037956_047AD0_D69B",
+    ]
+    for slc in slcs:
+        test_slc_dir.join(slc).write("single master, multiple slaves")
+    return test_slc_dir, {"20210507": 1, "20210519": 2}
+
+
+def create_single_master_single_slave(tmpdir):
+    test_slc_dir = tmpdir.mkdir("single_master_single_slave")
+    slcs = [
+        "S1A_IW_SLC__1SDV_20210507T104527_20210507T104553_037781_047584_C9C5",
+        "S1A_IW_SLC__1SDV_20210519T104527_20210519T104554_037956_047AD0_1750",
+    ]
+    for slc in slcs:
+        test_slc_dir.join(slc).write("single master, single slave")
+    return test_slc_dir, {"20210507": 1, "20210519": 1}
+
+
+mocked_s1_slcstack = [
+    create_multiple_masters_multiple_slaves,
+    create_multiple_masters_single_slave,
+    create_single_master_multiple_slaves,
+    create_single_master_single_slave,
+]
+
+
+@pytest.mark.parametrize("mocked", mocked_s1_slcstack)
+def test_sentinel1_slcstack_load(tmpdir, mocked):
+    source_dir, slc_len = mocked(tmpdir)
+    tmp_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
+    for key, value in tmp_stack.slc.items():
+        # check if the length of loaded images are correct (check the predefined dictionary)
+        assert len(value.source) == slc_len[key]
+
+
+@pytest.mark.parametrize("mocked", mocked_s1_slcstack)
+def test_sentinel1_slcstack_coregister(tmpdir, mocked):
+    source_dir, slc_len = mocked(tmpdir)
+    tmp_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
+    tmp_stack.coregister(master="20210507", output=source_dir)
+    # check if output is in the log
+    assert os.path.join(source_dir, "coregistration") in open(log.LOG_FNAME).read()

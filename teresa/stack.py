@@ -18,6 +18,11 @@ class SlcPair:
         self.master = master
         self.slave = slave
 
+    def coregister(self):
+        pass
+
+
+class Sentinel1SlcPair(SlcPair):
     def coregister(self, output_dir: str, dry_run: bool):
         # initialize a dictionary to store the coregistration results
         coregistration_settings = {"output_dir": output_dir, "dry_run": dry_run}
@@ -57,11 +62,7 @@ class Sentinel1SlcStack(SlcStack):
         return self
 
     def coregister(
-        self,
-        master: str,
-        output: str,
-        dry_run: bool = True,
-        update: bool = False
+        self, master: str, output: str, dry_run: bool = True, update: bool = False
     ) -> None:
         # check if master is in the slc dict
         if master not in self.slc:
@@ -69,6 +70,6 @@ class Sentinel1SlcStack(SlcStack):
         for slave, _ in self.slc.items():
             if slave == master:
                 continue  # doesn't make sense to coregister master with itself
-            SlcPair(
+            Sentinel1SlcPair(
                 master=self.slc[master], slave=self.slc[slave]
             ).coregister(output_dir=output, dry_run=dry_run)
