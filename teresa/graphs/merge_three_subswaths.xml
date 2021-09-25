@@ -4,21 +4,21 @@
     <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${input_product_subswath_1}</file>
+      <file>${input_subswath1}</file>
     </parameters>
   </node>
   <node id="Read(2)">
     <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${input_product_subswath_2}</file>
+      <file>${input_subswath2}</file>
     </parameters>
   </node>
   <node id="Read(3)">
     <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${input_product_subswath_3}</file>
+      <file>${input_subswath3}</file>
     </parameters>
   </node>
   <node id="TOPSAR-Merge">
@@ -38,7 +38,7 @@
       <sourceProduct refid="TOPSAR-Merge"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${output_product}</file>
+      <file>${output_path}</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>

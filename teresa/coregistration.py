@@ -8,6 +8,7 @@ from .log import log_config
 
 # https://stackoverflow.com/questions/46641078/how-to-avoid-circular-dependency-caused-by-type-hinting-of-pointer-attributes-in
 import typing
+
 if typing.TYPE_CHECKING:
     from . import stack
 
@@ -15,7 +16,6 @@ logger = log_config()
 
 
 class Coregistration(abc.ABC):
-
     @abc.abstractmethod
     def coregister(self):
         ...
@@ -38,6 +38,12 @@ class Sentinel1Coregistration(Coregistration):
         self.dry_run = dry_run
         self._processor = coreg_processor  # interface
 
+    def coregister(self):
+        self._prepare()
+        self._coregister()
+        self._merge()
+        self._finalize()
+
     def _prepare(self):
         # administritive stuff
         ...
@@ -48,7 +54,7 @@ class Sentinel1Coregistration(Coregistration):
         for nsubswath in range(1, 4):  # starts from 1
             self._coregister_subswath(nsubswath)
 
-    def _coregister_subswath(self, nsubswath):
+    def _coregister_subswath(self, nsubswath: int):
         """TODO: add description."""
 
         graph = graphs.GptGraphS1Coreg.generate(self.slc_pair)
@@ -60,14 +66,14 @@ class Sentinel1Coregistration(Coregistration):
             self.output_dir,
             "coregistration",
             self.slc_pair.slave.date,  # sort in dates
-            f"iw{nsubswath}"
+            f"iw{nsubswath}",
         )
 
         logger.info(
-            "COREGISTERING master %s and slave %s for swath IW%s:",
+            "/COREGISTERING/ master %s and slave %s for swath IW%s:",
             self.slc_pair.master.date,
             self.slc_pair.slave.date,
-            nsubswath
+            nsubswath,
         )
 
         # Execute the actual coregistration
@@ -81,24 +87,48 @@ class Sentinel1Coregistration(Coregistration):
             dry_run=self.dry_run,
         )
 
-        if self.dry_run:
-            # do something
-            pass
+        logger.debug(f"COMPLETED /COREGISTERING/ slave {self.slc_pair.slave.date}.")
+        self.slc_pair.slave.append(destination=output_path)
 
-        return True
+        if self.dry_run:
+            pass  # do something?
+        return self
 
     def _merge(self):
-        # self._processor.process(self.graph)
-        pass
+
+        graph = graphs.GptGraphS1Merge.generate()
+
+        output_path = os.path.join(
+            self.output_dir,
+            "coregistration",
+            self.slc_pair.slave.date,
+            "merged",  # save in merged directory
+        )
+
+        logger.info(f"/MERGING/ subswaths of image {self.slc_pair.slave.date}")
+
+        input_subswaths = {
+            f"input_subswath{i}": path
+            for i, path in enumerate(self.slc_pair.slave.destination)
+        }  # formating input swath paths
+
+        self._processor.process(  # concrete implementation of the logic
+            graph, output_path=output_path, **input_subswaths, dry_run=self.dry_run
+        )
+
+        logger.debug(
+            f"COMPLETED /MERGING/ subswaths of image {self.slc_pair.slave.date}."
+        )
+
+        if self.dry_run:
+            pass  # not sure what to do here, leave it blank for now.
+        return self
 
     def _finalize(self):
         pass  # the logic for cleaning up
 
-    def coregister(self):
-        self._prepare()
-        self._coregister()
-        self._merge()
-        self._finalize()
+    def _prune(self):
+        pass  # prune unneccessary files
 
 
 class TSXCoregistration(Coregistration):

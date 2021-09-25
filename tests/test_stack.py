@@ -75,3 +75,15 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked):
     tmp_stack.coregister(master="20210507", output=source_dir)
     # check if output is in the log
     assert os.path.join(source_dir, "coregistration") in open(log.LOG_FNAME).read()
+
+
+def test_slcimage_append():
+    # create a dummy SLCImage object
+    dummy_slcimage = stack.SlcImage(date="20210926")
+    dummy_slcimage.source = ("dummy_location1", "dummy_location2")  # type: ignore
+    dummy_slcimage.destination = ("dummy_output1", "dummy_output2")  # type: ignore
+    # update the object
+    dummy_slcimage.append(source="dummy_location3", destination="dummy_output3")
+    # check if the object is updated
+    assert dummy_slcimage.source == ("dummy_location1", "dummy_location2", "dummy_location3")
+    assert dummy_slcimage.destination == ("dummy_output1", "dummy_output2", "dummy_output3")

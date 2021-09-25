@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import typing
-
-if typing.TYPE_CHECKING:
-    from . import stack
+import os
 
 
 class GptGraph():
@@ -17,15 +14,16 @@ class GptGraphS1Coreg(GptGraph):
     def generate(slc_pair):
         mtype = "single" if len(slc_pair.master.source) == 1 else "multiple"
         stype = "single" if len(slc_pair.slave.source) == 1 else "multiple"
-        return f"graphs/coregister_subswath_{mtype}_master_{stype}_slave.xml"
+        graph = f"graphs/coregister_subswath_{mtype}_master_{stype}_slave.xml"
+        return os.path.join(os.path.abspath(os.path.dirname(__file__)), graph)
 
 
 class GptGraphS1Merge(GptGraph):
     @staticmethod
     def generate():
-        # return "graphs/merge_subswath.xml"
-        # not implemented
-        ...
+        nsubswaths = "three"   # only support merging all three subswath.
+        graph = f"graphs/merge_{nsubswaths}_subswath.xml"
+        return os.path.join(os.path.abspath(os.path.dirname(__file__)), graph)
 
 
 class GptGraphGeneral(GptGraph):
