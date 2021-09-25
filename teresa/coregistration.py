@@ -56,7 +56,12 @@ class Sentinel1Coregistration(Coregistration):
         # format gpt input
         master_files = ",".join([source for source in self.slc_pair.master.source])
         slave_files = ",".join([source for source in self.slc_pair.slave.source])
-        output_path = os.path.join(self.output_dir, "coregistration", f"iw{nsubswath}")
+        output_path = os.path.join(
+            self.output_dir,
+            "coregistration",
+            self.slc_pair.slave.date,  # sort in dates
+            f"iw{nsubswath}"
+        )
 
         logger.info(
             "COREGISTERING master %s and slave %s for swath IW%s:",
