@@ -22,7 +22,7 @@ class GptGraphS1Merge(GptGraph):
     @staticmethod
     def generate():
         nsubswaths = "three"   # only support merging all three subswath.
-        graph = f"graphs/merge_{nsubswaths}_subswath.xml"
+        graph = f"graphs/merge_{nsubswaths}_subswaths.xml"
         return os.path.join(os.path.abspath(os.path.dirname(__file__)), graph)
 
 
