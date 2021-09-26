@@ -108,7 +108,7 @@ class Sentinel1Coregistration(Coregistration):
         logger.info(f"/MERGING/ subswaths of image {self.slc_pair.slave.date}")
 
         input_subswaths = {
-            f"input_subswath{i}": path + ".dim"  # merge takes in .dim file
+            f"input_subswath{i+1}": path + ".dim"  # merge takes in .dim file
             for i, path in enumerate(self.slc_pair.slave.destination)
         }  # formating input swath paths
 
