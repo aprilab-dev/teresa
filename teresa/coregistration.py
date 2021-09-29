@@ -121,7 +121,7 @@ class Sentinel1Coregistration(Coregistration):
             "merged",  # save in merged directory
         )
 
-        logger.info(f"MERGING subswaths of image {self.slc_pair.slave.date}")
+        logger.info(f"MERGING subswaths of image {self.slc_pair.slave.date}:")
 
         input_subswaths = {
             f"input_subswath{i+1}": path + ".dim"  # merge takes in .dim file
@@ -213,7 +213,7 @@ class Sentinel1Coregistration(Coregistration):
             raise CoregistrationError(s)
 
         metadata["master"] = self.slc_pair.master.date
-        metadata["log"] = LOG_FNAME
+        metadata["log"] = os.path.join(os.getcwd(), LOG_FNAME)  # log file absolute path
         metadata["last_updated"] = last_updated
         if "slave" in metadata:
             metadata["slave"].append(self.slc_pair.slave.date)
