@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import os
+import re
 import abc
+import json
 import shutil
 from . import graphs
 from . import processor
-from .log import log_config
+from .log import log_config, LOG_FNAME
 from datetime import datetime
 
 # https://stackoverflow.com/questions/46641078/how-to-avoid-circular-dependency-caused-by-type-hinting-of-pointer-attributes-in
@@ -19,6 +21,11 @@ logger = log_config()
 COREG_DIR = "coregistered"
 
 format_date = lambda datestr: datetime.strptime(datestr, "%Y%m%d").strftime("%d%b%Y")
+
+
+class CoregistrationError(RuntimeError):
+    def __init__(self, message):
+        self.message = message
 
 
 class Coregistration(abc.ABC):
@@ -51,8 +58,7 @@ class Sentinel1Coregistration(Coregistration):
         self._finalize()
 
     def _prepare(self):
-        # administritive stuff
-        ...
+        self._serialize()  # serialize the output into a json file
 
     def _coregister(self):
         # the lofic for swath coregistration.
@@ -126,9 +132,7 @@ class Sentinel1Coregistration(Coregistration):
             graph, output_path=output_path, **input_subswaths, dry_run=self.dry_run
         )
 
-        logger.info(
-            f"MERGING image {self.slc_pair.slave.date} completed."
-        )
+        logger.info(f"MERGING image {self.slc_pair.slave.date} completed.")
 
         if self.dry_run:
             logger.debug("DRY-RUN: Creating dummy folders/files for testing purpose.")
@@ -139,7 +143,9 @@ class Sentinel1Coregistration(Coregistration):
             for channel in ("i", "q"):  # in-phase & quadrature channels
                 for suffix in ("img", "hdr"):
                     master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
-                    open(os.path.join(output_path + ".data", master_filename), "w").close()
+                    open(
+                        os.path.join(output_path + ".data", master_filename), "w"
+                    ).close()
 
         return self
 
@@ -183,6 +189,38 @@ class Sentinel1Coregistration(Coregistration):
             # remove subswaths files (only useful before merging)
             os.remove(path + ".dim")  # type: ignore
             shutil.rmtree(path + ".data")  # type: ignore
+        return self
+
+    def _serialize(self):
+
+        # last updated time
+        last_updated = datetime.strptime(
+            re.search(r"teresa_(.*).log", LOG_FNAME).group(1), "%Y-%m-%d_%H-%M-%S"  # type: ignore
+        ).strftime("%Y/%m/%d %H:%M:%S")
+
+        # metadata path
+        metadata_path = os.path.join(self.output_dir, COREG_DIR, "meta.json")
+        metadata = json.loads(metadata_path) if os.path.exists(metadata_path) else {}
+        # Update metadata
+        if "master" in metadata and metadata["master"] != self.slc_pair.master.date:
+            s = f"Master {self.slc_pair.master.date} does NOT match the master date {metadata['master']} in metafile!"
+            logger.error(s)
+            raise CoregistrationError(s)
+
+        metadata["master"] = self.slc_pair.master.date
+        metadata["log"] = LOG_FNAME
+        metadata["last_updated"] = last_updated
+        if "slave" in metadata:
+            metadata["slave"].append(self.slc_pair.slave.date)
+        else:
+            metadata["slave"] = self.slc_pair.slave.date
+
+        # create directory
+        os.makedirs(os.path.join(self.output_dir, COREG_DIR), exist_ok=True)
+        # update metadata
+        with open(metadata_path, "w") as outfile:  # write
+            json.dump(metadata, outfile)
+
         return self
 
 

@@ -1,6 +1,7 @@
 import os
 import pytest
-from teresa import stack, log, coregistration
+from teresa import stack, log
+from teresa.coregistration import COREG_DIR
 from . import conftest
 
 
@@ -27,7 +28,7 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked):
     tmp_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
     tmp_stack.coregister(master="20210507", output=source_dir)
     # check if output is in the log
-    assert os.path.join(source_dir, coregistration.COREG_DIR) in open(log.LOG_FNAME).read()
+    assert os.path.join(source_dir, COREG_DIR) in open(log.LOG_FNAME).read()
 
 
 def test_slcimage_append():
