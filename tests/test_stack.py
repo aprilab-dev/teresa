@@ -10,6 +10,7 @@ mocked_s1_slcstack = [
     conftest.create_multiple_masters_single_slave,
     conftest.create_single_master_multiple_slaves,
     conftest.create_single_master_single_slave,
+    conftest.create_stacks,
 ]
 
 

@@ -200,7 +200,12 @@ class Sentinel1Coregistration(Coregistration):
 
         # metadata path
         metadata_path = os.path.join(self.output_dir, COREG_DIR, "meta.json")
-        metadata = json.loads(metadata_path) if os.path.exists(metadata_path) else {}
+
+        if os.path.exists(metadata_path):
+            with open(metadata_path, "r") as f:
+                metadata = json.load(f)
+        else:
+            metadata = {}
         # Update metadata
         if "master" in metadata and metadata["master"] != self.slc_pair.master.date:
             s = f"Master {self.slc_pair.master.date} does NOT match the master date {metadata['master']} in metafile!"
@@ -213,7 +218,7 @@ class Sentinel1Coregistration(Coregistration):
         if "slave" in metadata:
             metadata["slave"].append(self.slc_pair.slave.date)
         else:
-            metadata["slave"] = self.slc_pair.slave.date
+            metadata["slave"] = [self.slc_pair.slave.date]  # list
 
         # create directory
         os.makedirs(os.path.join(self.output_dir, COREG_DIR), exist_ok=True)
