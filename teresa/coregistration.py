@@ -5,9 +5,10 @@ import re
 import abc
 import json
 import shutil
+import logging
 from . import graphs
 from . import processor
-from .log import log_config, LOG_FNAME
+from .log import LOG_FNAME
 from datetime import datetime
 
 # https://stackoverflow.com/questions/46641078/how-to-avoid-circular-dependency-caused-by-type-hinting-of-pointer-attributes-in
@@ -16,7 +17,7 @@ import typing
 if typing.TYPE_CHECKING:
     from . import stack
 
-logger = log_config()
+logger = logging.getLogger("sLogger")
 
 COREG_DIR = "coregistered"
 

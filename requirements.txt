@@ -1,3 +1,5 @@
 psutil
 pypinyin
 requests
+click
+click-log
