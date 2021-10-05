@@ -10,7 +10,11 @@ from .coregistration import COREG_DIR
 
 
 logger = logging.getLogger("sLogger")
-coloredlogs.install(level=logger.level, logger=logger)
+coloredlogs.install(
+    level=logger.level,
+    logger=logger,
+    fmt=logger.handlers[0].formatter._fmt  # type: ignore
+)
 
 
 @click.group()
