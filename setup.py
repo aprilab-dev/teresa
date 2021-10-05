@@ -30,6 +30,10 @@ setup(
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=install_requires,
+    entry_points="""
+        [console_scripts]
+        teresa=teresa.cli:main
+    """,
     setup_requires=["pytest-runner", "pylint"],
     tests_require=tests_require,
     extras_require={

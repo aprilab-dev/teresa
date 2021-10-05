@@ -1,7 +1,7 @@
 import os
 import pytest
 from teresa import stack, log
-from teresa.coregistration import COREG_DIR
+from teresa.coregistration import COREG_DIR, format_date
 from . import conftest
 
 
@@ -30,6 +30,15 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked):
     tmp_stack.coregister(master="20210507", output=source_dir)
     # check if output is in the log
     assert os.path.join(source_dir, COREG_DIR) in open(log.LOG_FNAME).read()
+    # assert file existence
+    pol = "VV"  # TODO: hardcoded for now
+    master_datestr = format_date("20210507")
+    for channel in ("i", "q"):  # in-phase & quadrature channels
+        for suffix in ("img", "hdr"):
+            master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+            assert os.path.isfile(
+                os.path.join(source_dir, COREG_DIR,"master","merged.data",master_filename)
+            )
 
 
 def test_slcimage_append():

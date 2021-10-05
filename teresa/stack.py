@@ -1,11 +1,10 @@
 import re
 import os
 import abc
+import logging
 from teresa import coregistration
-from teresa.log import log_config
 
-logger = log_config()
-
+logger = logging.getLogger("sLogger")
 
 class SlcImage:
     def __init__(self, date: str):

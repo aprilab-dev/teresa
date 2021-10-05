@@ -1,11 +1,11 @@
 import abc
+import logging
 import subprocess
 from typing import Union
 
-from .log import log_config
 from .config import Config, LocalConfig
 
-logger = log_config()
+logger = logging.getLogger("sLogger")
 
 
 class GptError(RuntimeError):
