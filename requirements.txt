@@ -3,3 +3,4 @@ pypinyin
 requests
 click
 click-log
+coloredlogs
