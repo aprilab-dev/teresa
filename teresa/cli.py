@@ -2,12 +2,15 @@ import os
 import click
 import shutil
 import logging
+import coloredlogs
 import click_log
 from datetime import datetime
 from . import stack
 from .coregistration import COREG_DIR
 
+
 logger = logging.getLogger("sLogger")
+coloredlogs.install(logger=logger)
 
 
 @click.group()
