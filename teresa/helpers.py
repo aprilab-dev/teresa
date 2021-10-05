@@ -1,8 +1,9 @@
 from pypinyin import lazy_pinyin as pinyin
 import requests
-from .log import log_config
+import logging
+from . import cli
 
-logger = log_config()
+logger = logging.getLogger("sLogger")
 
 API_KEY = "B5EBZ-W2GCI-Q23GO-5RJTM-YRZL7-WJBHO"
 

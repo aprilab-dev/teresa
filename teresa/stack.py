@@ -1,16 +1,25 @@
 import re
 import os
 import abc
+import logging
 from teresa import coregistration
-from teresa.log import log_config
 
-logger = log_config()
-
+logger = logging.getLogger("sLogger")
 
 class SlcImage:
     def __init__(self, date: str):
         self.date = date
         self.source = ()  # use a tuple to store filenames
+        self.destination = ()  # destination of processed proudct
+
+    def append(self, **kwargs):
+        # append a field of the object (we need to update because we use tuple
+        # for source, destination, ...)
+        for key, value in kwargs.items():
+            assert (
+                key in ("source", "destination")
+            ), "Only 'source' and 'destination' are allowed to be updated!"
+            self.__dict__[key] = self.__dict__[key] + (value,)
 
 
 class SlcPair:
@@ -70,6 +79,6 @@ class Sentinel1SlcStack(SlcStack):
         for slave, _ in self.slc.items():
             if slave == master:
                 continue  # doesn't make sense to coregister master with itself
-            Sentinel1SlcPair(
-                master=self.slc[master], slave=self.slc[slave]
-            ).coregister(output_dir=output, dry_run=dry_run)
+            Sentinel1SlcPair(master=self.slc[master], slave=self.slc[slave]).coregister(
+                output_dir=output, dry_run=dry_run
+            )
