@@ -1,8 +1,11 @@
+import os
 import click
+import shutil
 import logging
 import click_log
 from datetime import datetime
 from . import stack
+from .coregistration import COREG_DIR
 
 logger = logging.getLogger("sLogger")
 
@@ -53,3 +56,6 @@ def coregister(source_dir, destination, master, dry_run):
         master=datetime.strftime(master, "%Y%m%d"),
         dry_run=dry_run
     )
+
+    if dry_run:  # cleanup entire folder if dry run
+        shutil.rmtree(os.path.join(destination, COREG_DIR))
