@@ -18,10 +18,6 @@ def main():
     pass
 
 
-master = "20210401"
-
-
-
 @main.command()
 @click.option(
     "--source-dir",
@@ -45,7 +41,7 @@ master = "20210401"
     help="The master image in [yyyymmdd] format for coregistering the stack."
 )
 @click_log.simple_verbosity_option(logger)
-@click.option("--dry_run", "-n", default=False, is_flag=True, help="Dry run.")
+@click.option("--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run.")
 def coregister(source_dir, destination, master, dry_run):
     """
     Coregistrating a stack of SAR SLC images from source directory
