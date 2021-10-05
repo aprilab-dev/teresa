@@ -43,7 +43,7 @@ source $HOME/.venv/teresa/bin/activate
 最后我们在虚拟环境中安装依赖包：
 
 ```bash
-pip install --upgrade pip
+pip install --upgrade pip wheel  # wheel is required for setup.py
 pip install -e $HOME/teresa
 ```
 
