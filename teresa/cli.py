@@ -5,7 +5,6 @@ from datetime import datetime
 from . import stack
 
 logger = logging.getLogger("sLogger")
-click_log.basic_config(logger)
 
 
 @click.group()
@@ -40,7 +39,7 @@ def main():
     type=click.DateTime(formats=["%Y%m%d"]),
     help="The master image in [yyyymmdd] format for coregistering the stack."
 )
-@click_log.simple_verbosity_option(logger)
+@click_log.simple_verbosity_option(logger=logger)
 @click.option("--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run.")
 def coregister(source_dir, destination, master, dry_run):
     """
