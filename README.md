@@ -79,6 +79,7 @@ Commands:
 # 查看帮助
 teresa coregister --help
 # 运行命令
+# /path/to/source/dir 里面存放着所有的 SLC 文件夹或 zip 文件
 teresa coregister --dry-run --source-dir /path/to/source/dir --destination /path/to/destination --master yyyymmdd
 # 或者，简短版
 teresa coregister -n -s /path/to/source/dir -d /path/to/target/dir -m yyyymmdd
