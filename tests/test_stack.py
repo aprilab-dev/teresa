@@ -24,22 +24,42 @@ def test_sentinel1_slcstack_load(tmpdir, mocked):
 
 
 @pytest.mark.parametrize("mocked", mocked_s1_slcstack)
-def test_sentinel1_slcstack_coregister(tmpdir, mocked):
+@pytest.mark.parametrize("prune", [True, False])
+def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
     source_dir, slc_len = mocked(tmpdir)
     tmp_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
-    tmp_stack.coregister(master="20210507", output=source_dir)
+    tmp_stack.coregister(master="20210507", output=source_dir, prune=prune)
     # check if output is in the log
     assert os.path.join(source_dir, COREG_DIR) in open(log.LOG_FNAME).read()
+
     # assert file existence
     pol = "VV"  # TODO: hardcoded for now
     master_datestr = format_date("20210507")
-    for channel in ("i", "q"):  # in-phase & quadrature channels
-        for suffix in ("img", "hdr"):
-            master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
-            assert os.path.isfile(
-                os.path.join(source_dir, COREG_DIR,"master","merged.data",master_filename)
+    for channel, suffix in [(c, s) for c in ("i", "q") for s in ("img", "hdr")]:
+        master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+        assert os.path.isfile(
+            os.path.join(source_dir, COREG_DIR,"master","merged.data",master_filename)
+        )
+
+    # assert file existence if NOT prune
+    if not prune:
+        for channel, suffix in [(c, s) for c in ("i", "q") for s in ("img", "hdr")]:
+            for slave, _ in tmp_stack.slc.items():
+                master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+                assert os.path.isfile(
+                    os.path.join(source_dir, COREG_DIR, slave,"merged.data",master_filename)
             )
 
+    # assert file NOT existence if prune
+    if prune:
+        for channel, suffix in [(c, s) for c in ("i", "q") for s in ("img",)]:
+            for slave, _ in tmp_stack.slc.items():
+                if slave == "20210507":
+                    continue
+                master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+                assert not os.path.isfile(
+                    os.path.join(source_dir, COREG_DIR, slave,"merged.data",master_filename)
+                )
 
 def test_slcimage_append():
     # create a dummy SLCImage object
