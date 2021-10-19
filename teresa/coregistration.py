@@ -43,6 +43,7 @@ class Sentinel1Coregistration(Coregistration):
         output_dir: str,
         polarization: str = "vv",
         dry_run: bool = True,
+        prune: bool = True,
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
         self.graph = "None"
@@ -50,6 +51,7 @@ class Sentinel1Coregistration(Coregistration):
         self.output_dir = output_dir
         self.polarization = polarization
         self.dry_run = dry_run
+        self.prune = prune
         self._processor = coreg_processor  # interface
 
     def coregister(self):
@@ -156,7 +158,8 @@ class Sentinel1Coregistration(Coregistration):
 
     def _finalize(self):
         self._link_master()  # make a simlink to master date
-        self._prune()  # prune unnecessary files
+        if self.prune:
+            self._prune()  # prune unnecessary files
         return self
 
     def _link_master(self):
@@ -176,11 +179,14 @@ class Sentinel1Coregistration(Coregistration):
                 # copy if not exists
                 if os.path.exists(dst_file):
                     logger.debug(f"{dst_file} already exists.")
-                    if suffix == "img":  # remove img file if exists
+                    if suffix == "img" and self.prune:  # remove img file if exists
                         os.remove(src_file)
                 else:
                     logger.debug(f"Linking {src_file} to {dst_file}.")
-                    shutil.move(src_file, dst_file)
+                    if self.prune:
+                        shutil.move(src_file, dst_file)
+                    else:
+                        shutil.copy2(src_file, dst_file)
 
         master_symlink = os.path.join(self.output_dir, COREG_DIR, "master")
         if not self.dry_run:
