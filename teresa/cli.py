@@ -51,7 +51,8 @@ def main():
 )
 @click_log.simple_verbosity_option(logger=logger)
 @click.option("--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run.")
-def coregister(source_dir, destination, master, dry_run):
+@click.option("--prune/--no-prune", default=True, help="Remove temporary processing data.")
+def coregister(source_dir, destination, master, dry_run: bool, prune: bool):
     """
     Coregistrating a stack of SAR SLC images from source directory
     """
@@ -61,7 +62,8 @@ def coregister(source_dir, destination, master, dry_run):
     loaded_stack.coregister(
         output=destination,
         master=datetime.strftime(master, "%Y%m%d"),
-        dry_run=dry_run
+        dry_run=dry_run,
+        prune=prune,
     )
 
     if dry_run:  # cleanup entire folder if dry run
