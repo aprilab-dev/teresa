@@ -85,9 +85,10 @@ class Sentinel1SlcStack(SlcStack):
         # check if master is in the slc dict
         if master not in self.slc:
             logger.exception(f"The master date [{master}] is not in the stack.")
-        for slave, _ in self.slc.items():
+        for i, (slave, _) in enumerate(self.slc.items()):
             if slave == master:
                 continue  # doesn't make sense to coregister master with itself
             Sentinel1SlcPair(master=self.slc[master], slave=self.slc[slave]).coregister(
                 output_dir=output, dry_run=dry_run, prune=prune
             )
+            logger.info(f"COREGISTERING [{i}/{len(self.slc.items())-1}] completed.")
