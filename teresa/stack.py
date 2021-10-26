@@ -91,4 +91,4 @@ class Sentinel1SlcStack(SlcStack):
             Sentinel1SlcPair(master=self.slc[master], slave=self.slc[slave]).coregister(
                 output_dir=output, dry_run=dry_run, prune=prune
             )
-            logger.info(f"COREGISTERING [{i}/{len(self.slc.items())-1}] completed.")
+            logger.info(f"PROGRESS: {i}/{len(self.slc.items())-1} completed.")
