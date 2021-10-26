@@ -105,7 +105,7 @@ class Sentinel1Coregistration(Coregistration):
 
         self.slc_pair.slave.append(destination=output_path)
         if not self.dry_run:
-            logger.info(f"COREGISTERING slave {self.slc_pair.slave.date} completed.")
+            logger.info(f"COREGISTERING slave {self.slc_pair.slave.date} swath IW{nsubswath} completed.")
 
         if self.dry_run:
             logger.debug("DRY-RUN: Creating dummy folders/files for testing purpose.")
@@ -190,7 +190,7 @@ class Sentinel1Coregistration(Coregistration):
 
         master_symlink = os.path.join(self.output_dir, COREG_DIR, "master")
         if not self.dry_run:
-            logger.info(f"Soft linking {self.slc_pair.master.date} to 'master' folder.")
+            logger.info(f"SOFT-LINKING {self.slc_pair.master.date} to 'master' folder.")
         if not os.path.exists(master_symlink):
             # make a symlinks to "master" folder
             os.symlink(dst_dir, master_symlink)
