@@ -34,14 +34,20 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
 
     # assert file existence
     pol = "VV"  # TODO: hardcoded for now
-    master_datestr = format_date("20210507")
     for channel, suffix in [(c, s) for c in ("i", "q") for s in ("img", "hdr")]:
-        master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
-        assert os.path.isfile(
-            os.path.join(source_dir, COREG_DIR,"master","merged.data",master_filename)
+        for slave, _ in tmp_stack.slc.items():
+            slave_datestr = format_date(slave)
+            slave_filename = f"{channel}_{pol}_slv_{slave_datestr}.{suffix}"
+            assert os.path.isfile(
+                os.path.join(source_dir, COREG_DIR, slave,"merged.data", slave_filename)
         )
 
+    # assert DEM file exstence
+    assert os.path.isfile(os.path.join(source_dir, COREG_DIR, "DEM", "merged.dim"))
+    assert os.path.isfile(os.path.join(source_dir, COREG_DIR, "DEM", "merged.data", "elevation.hdr"))
+
     # assert file existence if NOT prune
+    master_datestr = format_date("20210507")
     if not prune:
         for channel, suffix in [(c, s) for c in ("i", "q") for s in ("img", "hdr")]:
             for slave, _ in tmp_stack.slc.items():
@@ -60,6 +66,10 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
                 assert not os.path.isfile(
                     os.path.join(source_dir, COREG_DIR, slave,"merged.data",master_filename)
                 )
+        # check DEM existence
+        assert not os.path.isfile(
+            os.path.join(source_dir, COREG_DIR, "DEM", "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr")
+        )
 
 def test_slcimage_append():
     # create a dummy SLCImage object
