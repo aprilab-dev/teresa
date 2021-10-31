@@ -1,10 +1,20 @@
+import os
 import click
+import shutil
 import logging
+import coloredlogs
 import click_log
 from datetime import datetime
 from . import stack
+from .coregistration import COREG_DIR
+
 
 logger = logging.getLogger("sLogger")
+coloredlogs.install(  # set colored logs for console in cli
+    level=logger.level,
+    logger=logger,
+    fmt=logger.handlers[0].formatter._fmt  # type: ignore
+)
 
 
 @click.group()
@@ -41,7 +51,8 @@ def main():
 )
 @click_log.simple_verbosity_option(logger=logger)
 @click.option("--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run.")
-def coregister(source_dir, destination, master, dry_run):
+@click.option("--prune/--no-prune", default=True, help="Remove temporary processing data.")
+def coregister(source_dir, destination, master, dry_run: bool, prune: bool):
     """
     Coregistrating a stack of SAR SLC images from source directory
     """
@@ -51,5 +62,9 @@ def coregister(source_dir, destination, master, dry_run):
     loaded_stack.coregister(
         output=destination,
         master=datetime.strftime(master, "%Y%m%d"),
-        dry_run=dry_run
+        dry_run=dry_run,
+        prune=prune,
     )
+
+    if dry_run:  # cleanup entire folder if dry run
+        shutil.rmtree(os.path.join(destination, COREG_DIR))
