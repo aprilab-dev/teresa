@@ -29,9 +29,10 @@ unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   script:
     - echo "Running unit tests..."
-    - pip3 install --upgrade pip
+    - pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
+    - pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
     - pip3 install -e .
-    - pip3 install -e .[test] 
+    - pip3 install -e .[test]
     - pytest --cov=teresa --junitxml=report.xml
     - echo "Complete."
   artifacts:
