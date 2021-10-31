@@ -2,7 +2,7 @@ import re
 import os
 import abc
 import logging
-from teresa import coregistration
+from teresa import coregistration as coreg
 
 logger = logging.getLogger("sLogger")
 
@@ -32,16 +32,9 @@ class SlcPair:
 
 
 class Sentinel1SlcPair(SlcPair):
-    def coregister(self, output_dir: str, dry_run: bool, prune: bool):
-        # initialize a dictionary to store the coregistration results
-        coregistration_settings = {
-            "output_dir": output_dir,
-            "dry_run": dry_run,
-            "prune": prune
-        }
-        coregistration.Sentinel1Coregistration(
-            slc_pair=self, **coregistration_settings
-        ).coregister()
+    def coregister(self, **coreg_settings):
+        # coregistration_settings to coreg_settings to save a few spaces
+        coreg.Sentinel1Coregistration(slc_pair=self, **coreg_settings).coregister()
 
 
 class SlcStack(abc.ABC):
@@ -85,10 +78,39 @@ class Sentinel1SlcStack(SlcStack):
         # check if master is in the slc dict
         if master not in self.slc:
             logger.exception(f"The master date [{master}] is not in the stack.")
-        for i, (slave, _) in enumerate(self.slc.items()):
+
+        """ coregistering the stack
+        """
+        completed_item=0
+        for slave, _ in self.slc.items():
             if slave == master:
-                continue  # doesn't make sense to coregister master with itself
-            Sentinel1SlcPair(master=self.slc[master], slave=self.slc[slave]).coregister(
-                output_dir=output, dry_run=dry_run, prune=prune
+                continue  # does not make sense to coregister master to master
+            Sentinel1SlcPair(
+                master=self.slc[master],
+                slave=self.slc[slave]
+            ).coregister(
+                output_dir=output,
+                dry_run=dry_run,
+                prune=prune
             )
-            logger.info(f"PROGRESS: {i}/{len(self.slc.items())-1} completed.")
+            completed_item += 1
+            logger.info(f"PROGRESS: {completed_item}/{len(self.slc.items())-1} completed.")
+
+        """
+        radarcode dem: for radarcoding we can coregister master with master.
+        as a matter of fact, it doesn't matter which image we coregsiter to master
+        when doing radarcoding of dem.
+        """
+        logger.info("RADARCODING DEM: Start.")
+
+        Sentinel1SlcPair(
+            master=self.slc[master],
+            slave=self.slc[master]  # radarcode DEM
+        ).coregister(
+            output_dir=output,
+            dry_run=dry_run,
+            prune=prune,
+            radarcode_dem=True,  # radarcode dem
+        )
+
+        logger.info("RADARCODING DEM: completed.")

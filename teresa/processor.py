@@ -39,7 +39,7 @@ class GptProcessor(Processor):
 
         try:
             if dry_run:
-                logger.info("GPT-DRY-RUN: %s", command)
+                logger.info("DRY RUN (GPT): %s", command)
                 return
             logger.info("GPT: %s", command)  # use a different logger if not dry run
             subprocess.run(command, shell=True, check=True, stderr=subprocess.PIPE)
