@@ -3,6 +3,7 @@ import os
 import abc
 import logging
 from teresa import coregistration as coreg
+from .log import LOG_FNAME
 
 logger = logging.getLogger("sLogger")
 
@@ -114,3 +115,4 @@ class Sentinel1SlcStack(SlcStack):
         )
 
         logger.info("RADARCODING DEM: completed.")
+        logger.info(f"Processing complete! Log is saved to {LOG_FNAME}")
