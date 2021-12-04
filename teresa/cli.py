@@ -5,7 +5,7 @@ import logging
 import coloredlogs
 import click_log
 from datetime import datetime
-from . import stack
+from . import stack, version
 from .coregistration import COREG_DIR
 
 
@@ -24,7 +24,7 @@ def main():
     Teresa is a command line tool for coregistering a stack of SAR SLC images.
     For more details see: https://git.terraqt.io/arcticwind/seafringe/teresa.
     """
-    pass
+    logger.info(f"Using TERESA version: {version.__version__} for this run.")
 
 
 @main.command()

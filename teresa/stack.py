@@ -78,7 +78,8 @@ class Sentinel1SlcStack(SlcStack):
     ) -> None:
         # check if master is in the slc dict
         if master not in self.slc:
-            logger.exception(f"The master date [{master}] is not in the stack.")
+            logger.critical(f"The master date [{master}] is not in the stack!")
+            raise SystemExit(-1)  # return a -1 status
 
         """ coregistering the stack
         """
