@@ -3,7 +3,7 @@
 [![pipeline status](https://git.terraqt.io/arcticwind/seafringe/teresa/badges/main/pipeline.svg)](https://git.terraqt.io/arcticwind/seafringe/teresa/-/commits/main)
 [![coverage report](https://git.terraqt.io/arcticwind/seafringe/teresa/badges/main/coverage.svg)](https://git.terraqt.io/arcticwind/seafringe/teresa/-/commits/main)
 
-[[TOC]]
+[[_TOC_]]
 
 ## TERESA 是什么？
 
