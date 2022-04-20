@@ -4,3 +4,10 @@ requests
 click
 click-log
 coloredlogs
+numpy
+geojson
+shapely
+num2words
+vine==0.0.23
+shapely
+tqhub-sqadk-data==0.1.26

@@ -30,7 +30,7 @@ unit-test-job:   # This job runs in the test stage.
   script:
     - echo "Running unit tests..."
     - pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
-    - pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+    - pip3 config set global.index-url https://pypi.terraqt.dev/simple
     - pip3 install -e .
     - pip3 install -e .[test]
     - pytest --cov=teresa --junitxml=report.xml
