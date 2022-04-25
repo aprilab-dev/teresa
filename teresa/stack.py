@@ -36,6 +36,16 @@ class Sentinel1SlcImage(SlcImage):
         """单个文件的 crop 业务逻辑发生在这里
         这个逻辑目前只有S1需要，所以不需要创建一个 abstract class
         """
+
+        """
+        业务逻辑如下：
+        aoi = geojson2polyon(aoi)
+        boundary = xml2polygon(self.source) <
+        intersection = intersect(aoi, boundary)
+        for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
+            first, last = _find_burst_in_intersection(intersection, meta)
+            setattr(self, f"IW{nsubswath}", {"first_burst_index":first, "last_burst_index":last})
+        """
         pass
 
 
