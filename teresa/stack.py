@@ -23,6 +23,16 @@ class SlcImage:
             self.__dict__[key] = self.__dict__[key] + (value,)
 
 
+class Sentinel1SlcImage(SlcImage):
+
+    def __init__(self, date: str):
+        """assign bursts indices for S1.
+        """
+        super(Sentinel1SlcImage, self).__init__(date)
+        for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
+            setattr(self, f"IW{nsubswath}", {"first_burst_index":1, "last_burst_index":999})
+
+
 class SlcPair:
     def __init__(self, master: SlcImage, slave: SlcImage):
         self.master = master
