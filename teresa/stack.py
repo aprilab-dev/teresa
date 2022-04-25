@@ -32,6 +32,12 @@ class Sentinel1SlcImage(SlcImage):
         for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
             setattr(self, f"IW{nsubswath}", {"first_burst_index":1, "last_burst_index":999})
 
+    def crop(self, aoi):
+        """单个文件的 crop 业务逻辑发生在这里
+        这个逻辑目前只有S1需要，所以不需要创建一个 abstract class
+        """
+        pass
+
 
 class SlcPair:
     def __init__(self, master: SlcImage, slave: SlcImage):
@@ -82,6 +88,16 @@ class Sentinel1SlcStack(SlcStack):
         """
         此函数根据 AoI “裁剪” S1 的数据集。注意，这个“裁剪”不是一个真实的“裁剪”，只是算出包含
         AoI 所需要的 bursts 是多少。在配准的过程中会选择相应的 bursts 进行裁剪后配准。
+        """
+
+        """
+        crop() 中的逻辑应该是：
+        想想看，为什么？？?
+
+        for img, _ in self.slc.items():
+            self.slc[img].crop(aoi=aoi)
+
+        return self
         """
         pass
 
