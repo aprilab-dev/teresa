@@ -124,6 +124,9 @@ class Sentinel1Coregistration(Coregistration):
                 nsubswath,
             )
 
+        master_bursts_indices = getattr(self.slc_pair.master, f"IW{nsubswath}")
+        slave_bursts_indices = getattr(self.slc_pair.slave, f"IW{nsubswath}")
+
         # Execute the actual coregistration
         self._processor.process(
             graph,
@@ -133,6 +136,11 @@ class Sentinel1Coregistration(Coregistration):
             slave_files=slave_files,
             output_path=output_path,
             dry_run=self.dry_run,
+            # add structure here
+            master_first_burst = master_bursts_indices["first_burst_index"],
+            master_last_burst = master_bursts_indices["last_burst_index"],
+            slave_first_burst = slave_bursts_indices["first_burst_index"],
+            slave_last_burst = slave_bursts_indices["last_burst_index"],
         )
 
         self.slc_pair.slave.append(destination=output_path)
