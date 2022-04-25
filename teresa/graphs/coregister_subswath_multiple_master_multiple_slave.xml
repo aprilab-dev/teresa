@@ -40,8 +40,8 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <subswath>${subswath}</subswath>
       <selectedPolarisations>${polorization}</selectedPolarisations>
-      <firstBurstIndex>1</firstBurstIndex>
-      <lastBurstIndex>999</lastBurstIndex>
+      <firstBurstIndex>${master_first_burst}</firstBurstIndex>
+      <lastBurstIndex>${master_last_burst}</lastBurstIndex>
       <wktAoi/>
     </parameters>
   </node>
@@ -53,8 +53,8 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <subswath>${subswath}</subswath>
       <selectedPolarisations>${polorization}</selectedPolarisations>
-      <firstBurstIndex>1</firstBurstIndex>
-      <lastBurstIndex>999</lastBurstIndex>
+      <firstBurstIndex>${slave_first_burst}</firstBurstIndex>
+      <lastBurstIndex>${slave_last_burst}</lastBurstIndex>
       <wktAoi/>
     </parameters>
   </node>
