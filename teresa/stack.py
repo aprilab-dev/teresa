@@ -70,7 +70,7 @@ class Sentinel1SlcStack(SlcStack):
                 ).group(1)  # type: ignore
                 # check if key exist
                 if acquisition not in self.slc:
-                    self.slc[acquisition] = SlcImage(date=acquisition)
+                    self.slc[acquisition] = Sentinel1SlcImage(date=acquisition)
 
                 self.slc[acquisition].source += (
                     os.path.join(self.sourcedir, file),
