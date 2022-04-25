@@ -22,6 +22,17 @@ def test_sentinel1_slcstack_load(tmpdir, mocked):
         # check if the length of loaded images are correct (check the predefined dictionary)
         assert len(value.source) == slc_len[key]
 
+@pytest.mark.parametrize("mocked", mocked_s1_slcstack)
+def test_sentinel1_slcstack_bursts_indices(tmpdir, mocked):
+    source_dir, slc_len = mocked(tmpdir)
+    tmp_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
+    # check if the the bursts indices are the default ones.
+    for key, _ in tmp_stack.slc.items():
+        for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
+            bursts_indices = getattr(tmp_stack.slc[key], f"IW{nsubswath}")
+            assert bursts_indices["first_burst_index"]==1
+            assert bursts_indices["last_burst_index"]==999
+
 
 @pytest.mark.parametrize("mocked", mocked_s1_slcstack)
 @pytest.mark.parametrize("prune", [True, False])
