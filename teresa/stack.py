@@ -78,6 +78,13 @@ class Sentinel1SlcStack(SlcStack):
 
         return self
 
+    def crop(self, aoi):
+        """
+        此函数根据 AoI “裁剪” S1 的数据集。注意，这个“裁剪”不是一个真实的“裁剪”，只是算出包含
+        AoI 所需要的 bursts 是多少。在配准的过程中会选择相应的 bursts 进行裁剪后配准。
+        """
+        pass
+
     def coregister(
         self,
         master: str,
