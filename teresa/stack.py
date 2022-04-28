@@ -7,13 +7,43 @@ from .log import LOG_FNAME
 
 logger = logging.getLogger("sLogger")
 
+
 class SlcImage:
+
+    """`SlcImage` 是对于单张 SLC 影像的一个抽象。里面包含了需要抽象一张 SLC 所需要的属性。
+    `SlcImage` 中抽象的是所有 SLC 所共同所有的属性。
+
+    Attributes
+    ----------
+    date : str
+        单张 SLC 的影像获取时间。
+    destination : tuple
+        对应日期的所处理（配准）过后的 SLC 影像的存储路径（文件夹）。
+    source : tuple
+        对应日期的原始 1 级 SLC 影像路径（可以一个日期对应多个路径，用 tuple 存储。）
+    """
+
     def __init__(self, date: str):
+        """初始化`SlcImage`，初始化只需要给定对应的日期（`date`）即可。
+
+        Parameters
+        ----------
+        date : str
+        """
         self.date = date
-        self.source = ()  # use a tuple to store filenames
-        self.destination = ()  # destination of processed proudct
+        self.source = ()  # 仅在这里做初始化
+        self.destination = ()  # 仅在这里做初始化
 
     def append(self, **kwargs):
+        """`append()` 方法是用来为`SlcImage`类添加和更新属性的方法。`append()` 设置了该类
+        可以添加和更新的属性。**目前** 可更新的属性只有 `source` 和 `destination` 两个。
+
+        Parameters
+        ----------
+        **kwargs
+            可以添加到 `SlcImage` 类中的 keyword argument。
+        """
+
         # append a field of the object (we need to update because we use tuple
         # for source, destination, ...)
         for key, value in kwargs.items():
@@ -25,8 +55,19 @@ class SlcImage:
 
 class Sentinel1SlcImage(SlcImage):
 
+    """`Sentinel1SlcImage` 是 `SlcImage` 的子类，定义了一些只有 Sentinel-1 才有的属性和
+    方法。
+    """
+
     def __init__(self, date: str):
-        """assign bursts indices for S1.
+        """除了 `SlcImage` 的方法以外，S1 独有的属性是*所需要处理*的 subswaths 和 bursts 的
+        个数（index），故对于每一个 subswaths 都定义了 `first_burst_index` 和 `last_burst_index`。
+        因为 `teresa` 处理的 S1 目前仅限于 IW 模式，一定是三个 subswaths，故采用了一种“hardcoded”
+        的方式来定义三个 subswaths 的属性如下：
+            `self.IW1["first_burst_index"]=2`
+            `self.IW1["last_burst_index"]=3`
+            `self.IW3["first_burst_index"]=None`
+            `self.IW3["last_burst_index"]=None`
         """
         super(Sentinel1SlcImage, self).__init__(date)
         for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
