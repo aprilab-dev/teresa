@@ -74,8 +74,13 @@ class Sentinel1SlcImage(SlcImage):
             setattr(self, f"IW{nsubswath}", {"first_burst_index":1, "last_burst_index":999})
 
     def crop(self, aoi):
-        """单个文件的 crop 业务逻辑发生在这里
-        这个逻辑目前只有S1需要，所以不需要创建一个 abstract class
+        """`crop()` 是单日影像的裁剪业务逻辑。请注意，这个逻辑目前只有 S1 需要，所以是一个
+        `Sentinel1SlcImage` 类的方法，而且不需要创建一个父类的 abstract class。
+
+        Parameters
+        ----------
+        aoi : 暂时还没有确定
+            需要处理的区域（Area of Interest, AoI)
         """
 
         """
@@ -138,19 +143,20 @@ class Sentinel1SlcStack(SlcStack):
     def crop(self, aoi):
         """
         此函数根据 AoI “裁剪” S1 的数据集。注意，这个“裁剪”不是一个真实的“裁剪”，只是算出包含
-        AoI 所需要的 bursts 是多少。在配准的过程中会选择相应的 bursts 进行裁剪后配准。
+        AoI 所需要的 bursts 是多少，需要哪几个 subswaths。在配准的过程中才会触发真正的“裁剪”
+        的过程，选择相应的 bursts 进行裁剪后配准。
+
+        Parameters
+        ----------
+        aoi : 暂时还没有确定
+            需要处理的区域（Area of Interest, AoI)
         """
 
-        """
-        crop() 中的逻辑应该是：
-        想想看，为什么？？?
-
-        for img, _ in self.slc.items():
-            self.slc[img].crop(aoi=aoi)
+        # implement crop logic on each date/acquisition
+        for acquisition, _ in self.slc.items():
+            self.slc[acquisition].crop(aoi=aoi)
 
         return self
-        """
-        pass
 
     def coregister(
         self,
