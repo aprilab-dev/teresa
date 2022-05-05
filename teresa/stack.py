@@ -73,9 +73,33 @@ class Sentinel1SlcImage(SlcImage):
         for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
             setattr(self, f"IW{nsubswath}", {"first_burst_index":1, "last_burst_index":999})
 
+    def _extract_meta(self):
+        """ extract 是读取:obj:`Sentinel1SlcImage` 类中的元数据所需要的方法。
+        """
+
+        def _unzip(fzip):
+            # 将 xml 解压到某 **临时文件夹中**
+            pass
+
+        # 解压
+        for fzip in os.listdir(self.sourcedir):
+            if re.match(r"S1(.*).zip", fzip):
+                _unzip(fzip)
+
+        # 读取 xml
+        for nsubswath in range(1, 4):
+            s1meta = self._convert(fxml)  # 读取元数据的过程, 返回一个字典
+            setattr(self, f"IW{nsubswath}", s1meta)  # 更新属性
+
+            boundary = _coordinates2polygon(s1meta)  # 从 meta 读取 boundary 的过程
+            setattr(self, f"IW{nsubswath}", {"boundary":boundary})
+
+        return self
+
+
     def crop(self, aoi):
         """`crop()` 是单日影像的裁剪业务逻辑。请注意，这个逻辑目前只有 S1 需要，所以是一个
-        `Sentinel1SlcImage` 类的方法，而且不需要创建一个父类的 abstract class。
+        :obj:`Sentinel1SlcImage` 类的方法，而且不需要创建一个父类的 abstract class。
 
         Parameters
         ----------
@@ -85,14 +109,20 @@ class Sentinel1SlcImage(SlcImage):
 
         """
         业务逻辑框架如下：
-        aoi = _geojson2polyon(aoi)  # aoi: geometry.Polygon()
-        boundary = _xml2polygon(self.source)  # boundary: geometry.Polygon()
-        intersection = _intersect(boundary, aoi)  #
+
+        import helpers
+
+        self._extract_meta()  # crop() 触发上述业务逻辑, 读取与 :obj:`Sentinel1SlcImage` 元数据
+        aoi = helpers._geojson2polyon(aoi)  # 返回 aoi: geometry.Polygon()
         for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
-            first, last = _find_burst_in_intersection(intersection, meta)
+            # boundary 中用字典存三个 boundary 的 Polygon
+            meta_swath = getattr(boundary, f"IW{nsubswath}")
+            intersected = helpers._intersect(meta_swathA["boundary"], aoi)
+            # 你原来读取元数据的那部分逻辑应该是属于 ``Sentinel1SlcImage`` 的
+            first, last = _find_burst_in_intersection(intersected, meta_swath)
             setattr(self, f"IW{nsubswath}", {"first_burst_index":first, "last_burst_index":last})
         """
-        pass
+        return self
 
 
 class SlcPair:
