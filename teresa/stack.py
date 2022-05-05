@@ -84,10 +84,10 @@ class Sentinel1SlcImage(SlcImage):
         """
 
         """
-        业务逻辑如下：
-        aoi = geojson2polyon(aoi)
-        boundary = xml2polygon(self.source) <
-        intersection = intersect(aoi, boundary)
+        业务逻辑框架如下：
+        aoi = _geojson2polyon(aoi)  # aoi: geometry.Polygon()
+        boundary = _xml2polygon(self.source)  # boundary: geometry.Polygon()
+        intersection = _intersect(boundary, aoi)  #
         for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
             first, last = _find_burst_in_intersection(intersection, meta)
             setattr(self, f"IW{nsubswath}", {"first_burst_index":first, "last_burst_index":last})
