@@ -9,7 +9,6 @@ logger = logging.getLogger("sLogger")
 
 
 class SlcImage:
-
     """`SlcImage` 是对于单张 SLC 影像的一个抽象。里面包含了需要抽象一张 SLC 所需要的属性。
     `SlcImage` 中抽象的是所有 SLC 所共同所有的属性。
 
@@ -31,12 +30,13 @@ class SlcImage:
         date : str
         """
         self.date = date
-        self.source = ()  # 仅在这里做初始化
-        self.destination = ()  # 仅在这里做初始化
+        self.source = ()  # 一个日期的 SlcImage 所对应的文件（们）
+        self.destination = ()  # 该日期的 SlcImage 的处理结果存放的路径
 
     def append(self, **kwargs):
-        """`append()` 方法是用来为`SlcImage`类添加和更新属性的方法。`append()` 设置了该类
-        可以添加和更新的属性。**目前** 可更新的属性只有 `source` 和 `destination` 两个。
+        """`append()` 方法是用来为`SlcImage`类添加和更新属性的方法。`append()` 设置了
+        该类可以添加和更新的属性。*目前* 可更新的属性只有 `source` 和 `destination` 两个。
+        之所以要用 `append()` 方法，是因为 `SlcImage` 类是用元组表示的，是 immutable 的。
 
         Parameters
         ----------
@@ -55,26 +55,30 @@ class SlcImage:
 
 class Sentinel1SlcImage(SlcImage):
 
-    """`Sentinel1SlcImage` 是 `SlcImage` 的子类，定义了一些只有 Sentinel-1 才有的属性和
-    方法。
+    """`Sentinel1SlcImage` 是 `SlcImage` 的子类，定义了一些只有 Sentinel-1 才有的属性
+    和方法。
     """
 
     def __init__(self, date: str):
-        """除了 `SlcImage` 的方法以外，S1 独有的属性是*所需要处理*的 subswaths 和 bursts 的
-        个数（index），故对于每一个 subswaths 都定义了 `first_burst_index` 和 `last_burst_index`。
-        因为 `teresa` 处理的 S1 目前仅限于 IW 模式，一定是三个 subswaths，故采用了一种“hardcoded”
-        的方式来定义三个 subswaths 的属性如下：
-            `self.IW1["first_burst_index"]=2`
-            `self.IW1["last_burst_index"]=3`
-            `self.IW3["first_burst_index"]=None`
-            `self.IW3["last_burst_index"]=None`
+        """除了 `SlcImage` 的方法以外，S1 独有的属性是其所需要处理的 subswaths 和 bursts
+        的个数（index），故对于每一个 subswaths 都定义了 `first_burst_index` 和
+        `last_burst_index`。因为 teresa 处理的 S1 目前仅限于 IW 模式，一定是三个
+        subswaths，故直接用字符串定义三个 subswaths 的属性如下：
+            ``self.IW1["first_burst_index"]=2``
+            ``self.IW1["last_burst_index"]=3``
+            ``self.IW3["first_burst_index"]=0``
+            ``self.IW3["last_burst_index"]=0``  # 0 表示不处理该 burst
         """
+
         super(Sentinel1SlcImage, self).__init__(date)
         for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
             setattr(self, f"IW{nsubswath}", {"first_burst_index":1, "last_burst_index":999})
+            # 定义 fmeta（metafile路径们）为空元组
+            setattr(self, f"IW{nsubswath}", {"fmeta":()})
 
     def _extract_meta(self):
-        """ extract 是读取:obj:`Sentinel1SlcImage` 类中的元数据所需要的方法。
+        """ #DEPRECATED: 这个 function 应该后面没有啥用了。
+        extract 是读取:obj:`Sentinel1SlcImage` 类中的元数据所需要的方法。
         """
 
         def _unzip(fzip):
@@ -100,28 +104,21 @@ class Sentinel1SlcImage(SlcImage):
     def crop(self, aoi):
         """`crop()` 是单日影像的裁剪业务逻辑。请注意，这个逻辑目前只有 S1 需要，所以是一个
         :obj:`Sentinel1SlcImage` 类的方法，而且不需要创建一个父类的 abstract class。
+        另，这里的 `crop()` 是一个 lazy evaluation，即真实的读取、裁剪等业务逻辑并不发生
+        在这里，这里的 crop 只是计算出来 crop 所需要的起始、终止的 bursts，并返回。真实的
+        crop 的业务逻辑（也就是读取）是发生在 coregister 真正读数据的时候的。
 
         Parameters
         ----------
-        aoi : 暂时还没有确定
+        aoi : 暂时还没有确定数据类型 #TODO：@Jerry
             需要处理的区域（Area of Interest, AoI)
+
+        Example
+        -------
+        业务逻辑框架见 FRINGE-314 中的讨论。
         """
 
-        """
-        业务逻辑框架如下：
-
-        import helpers
-
-        self._extract_meta()  # crop() 触发上述业务逻辑, 读取与 :obj:`Sentinel1SlcImage` 元数据
-        aoi = helpers._geojson2polyon(aoi)  # 返回 aoi: geometry.Polygon()
-        for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
-            # boundary 中用字典存三个 boundary 的 Polygon
-            meta_swath = getattr(boundary, f"IW{nsubswath}")
-            intersected = helpers._intersect(meta_swathA["boundary"], aoi)
-            # 你原来读取元数据的那部分逻辑应该是属于 ``Sentinel1SlcImage`` 的
-            first, last = _find_burst_in_intersection(intersected, meta_swath)
-            setattr(self, f"IW{nsubswath}", {"first_burst_index":first, "last_burst_index":last})
-        """
+        # 目前是一个空的函数，后面会更新
         return self
 
 
@@ -172,6 +169,7 @@ class Sentinel1SlcStack(SlcStack):
 
     def crop(self, aoi):
         """
+        #TODO: @Jerry请更新
         此函数根据 AoI “裁剪” S1 的数据集。注意，这个“裁剪”不是一个真实的“裁剪”，只是算出包含
         AoI 所需要的 bursts 是多少，需要哪几个 subswaths。在配准的过程中才会触发真正的“裁剪”
         的过程，选择相应的 bursts 进行裁剪后配准。
