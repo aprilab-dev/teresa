@@ -47,8 +47,9 @@ class SlcImage:
         # append a field of the object (we need to update because we use tuple
         # for source, destination, ...)
         for key, value in kwargs.items():
-            assert (
-                key in ("source", "destination")
+            assert key in (
+                "source",
+                "destination",
             ), "Only 'source' and 'destination' are allowed to be updated!"
             self.__dict__[key] = self.__dict__[key] + (value,)
 
@@ -72,12 +73,15 @@ class Sentinel1SlcImage(SlcImage):
 
         super(Sentinel1SlcImage, self).__init__(date)
         for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
-            setattr(self, f"IW{nsubswath}", {"first_burst_index":1, "last_burst_index":999})
             # 定义 fmeta（metafile路径们）为空元组
-            setattr(self, f"IW{nsubswath}", {"fmeta":()})
+            setattr(
+                self,
+                f"IW{nsubswath}",
+                {"first_burst_index": 1, "last_burst_index": 999, "fmeta": ()},
+            )
 
     def _extract_meta(self):
-        """ #DEPRECATED: 这个 function 应该后面没有啥用了。
+        """#DEPRECATED: 这个 function 应该后面没有啥用了。
         extract 是读取:obj:`Sentinel1SlcImage` 类中的元数据所需要的方法。
         """
 
@@ -96,10 +100,9 @@ class Sentinel1SlcImage(SlcImage):
             setattr(self, f"IW{nsubswath}", s1meta)  # 更新属性
 
             boundary = _coordinates2polygon(s1meta)  # 从 meta 读取 boundary 的过程
-            setattr(self, f"IW{nsubswath}", {"boundary":boundary})
+            setattr(self, f"IW{nsubswath}", {"boundary": boundary})
 
         return self
-
 
     def crop(self, aoi):
         """`crop()` 是单日影像的裁剪业务逻辑。请注意，这个逻辑目前只有 S1 需要，所以是一个
@@ -156,7 +159,9 @@ class Sentinel1SlcStack(SlcStack):
                 # get the date from the filename
                 acquisition = re.search(
                     r"S1[A|B]_IW_SLC_.+(20\d{6})T\d{6}_20\d{6}T\d{6}_.+", file
-                ).group(1)  # type: ignore
+                ).group(
+                    1
+                )  # type: ignore
                 # check if key exist
                 if acquisition not in self.slc:
                     self.slc[acquisition] = Sentinel1SlcImage(date=acquisition)
@@ -191,8 +196,8 @@ class Sentinel1SlcStack(SlcStack):
         master: str,
         output: str,
         dry_run: bool = True,
-        prune: bool= True,
-        update: bool = False
+        prune: bool = True,
+        update: bool = False,
     ) -> None:
         # check if master is in the slc dict
         if master not in self.slc:
@@ -201,20 +206,17 @@ class Sentinel1SlcStack(SlcStack):
 
         """ coregistering the stack
         """
-        completed_item=0
+        completed_item = 0
         for slave, _ in self.slc.items():
             if slave == master:
                 continue  # does not make sense to coregister master to master
-            Sentinel1SlcPair(
-                master=self.slc[master],
-                slave=self.slc[slave]
-            ).coregister(
-                output_dir=output,
-                dry_run=dry_run,
-                prune=prune
+            Sentinel1SlcPair(master=self.slc[master], slave=self.slc[slave]).coregister(
+                output_dir=output, dry_run=dry_run, prune=prune
             )
             completed_item += 1
-            logger.info(f"PROGRESS: {completed_item}/{len(self.slc.items())-1} completed.")
+            logger.info(
+                f"PROGRESS: {completed_item}/{len(self.slc.items())-1} completed."
+            )
 
         """
         radarcode dem: for radarcoding we can coregister master with master.
@@ -224,8 +226,7 @@ class Sentinel1SlcStack(SlcStack):
         logger.info("RADARCODING DEM: Start.")
 
         Sentinel1SlcPair(
-            master=self.slc[master],
-            slave=self.slc[master]  # radarcode DEM
+            master=self.slc[master], slave=self.slc[master]  # radarcode DEM
         ).coregister(
             output_dir=output,
             dry_run=dry_run,
