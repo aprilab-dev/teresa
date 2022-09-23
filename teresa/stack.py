@@ -2,8 +2,10 @@ import re
 import os
 import abc
 import logging
+
+from helpers import FindBursts
 from teresa import coregistration as coreg
-from .log import LOG_FNAME
+from teresa.log import LOG_FNAME
 
 logger = logging.getLogger("sLogger")
 
@@ -77,32 +79,8 @@ class Sentinel1SlcImage(SlcImage):
             setattr(
                 self,
                 f"IW{nsubswath}",
-                {"first_burst_index": 1, "last_burst_index": 999, "fmeta": ()},
-            )
-
-    def _extract_meta(self):
-        """#DEPRECATED: 这个 function 应该后面没有啥用了。
-        extract 是读取:obj:`Sentinel1SlcImage` 类中的元数据所需要的方法。
-        """
-
-        def _unzip(fzip):
-            # 将 xml 解压到某 **临时文件夹中**
-            pass
-
-        # 解压
-        for fzip in os.listdir(self.sourcedir):
-            if re.match(r"S1(.*).zip", fzip):
-                _unzip(fzip)
-
-        # 读取 xml
-        for nsubswath in range(1, 4):
-            s1meta = self._convert(fxml)  # 读取元数据的过程, 返回一个字典
-            setattr(self, f"IW{nsubswath}", s1meta)  # 更新属性
-
-            boundary = _coordinates2polygon(s1meta)  # 从 meta 读取 boundary 的过程
-            setattr(self, f"IW{nsubswath}", {"boundary": boundary})
-
-        return self
+                {"first_burst_index": 1, "last_burst_index": 999, "fmeta": self.source},
+            ) # 此处 "fmeta" 建议使用 SentinelImage 中的 source，这样可以在不使用 crop 的情况下，也同样可以运行
 
     def crop(self, aoi):
         """`crop()` 是单日影像的裁剪业务逻辑。请注意，这个逻辑目前只有 S1 需要，所以是一个
@@ -120,7 +98,10 @@ class Sentinel1SlcImage(SlcImage):
         -------
         业务逻辑框架见 FRINGE-314 中的讨论。
         """
-
+        # 此处逻辑是针对于每个 SlcImage 对象中的 IW1，IW2，IW3 的属性，以对应的 xml 文件来进行更新
+        cropping_attributes = FindBursts(self, aoi).get_minimum_overlapping() # 此处作用是更新 SlcImage 中的 IW1，IW2，IW3 属性
+        for subswath, attribute in cropping_attributes.items():
+            setattr(self, subswath, attribute) # 
         # 目前是一个空的函数，后面会更新
         return self
 
@@ -169,7 +150,6 @@ class Sentinel1SlcStack(SlcStack):
                 self.slc[acquisition].source += (
                     os.path.join(self.sourcedir, file),
                 )  # update tuple
-
         return self
 
     def crop(self, aoi):
@@ -186,8 +166,13 @@ class Sentinel1SlcStack(SlcStack):
         """
 
         # implement crop logic on each date/acquisition
+        completed_item = 0
         for acquisition, _ in self.slc.items():
             self.slc[acquisition].crop(aoi=aoi)
+            completed_item += 1
+            logger.info(
+                f"CROP PROCESS: {completed_item}/{len(self.slc.items())} completed."
+            )
 
         return self
 
@@ -215,7 +200,7 @@ class Sentinel1SlcStack(SlcStack):
             )
             completed_item += 1
             logger.info(
-                f"PROGRESS: {completed_item}/{len(self.slc.items())-1} completed."
+                f"LOAD PROGRESS: {completed_item}/{len(self.slc.items())-1} completed."
             )
 
         """
@@ -236,3 +221,6 @@ class Sentinel1SlcStack(SlcStack):
 
         logger.info("RADARCODING DEM: completed.")
         logger.info(f"Processing complete! Log is saved to {LOG_FNAME}")
+
+if __name__ == "__main__":
+    a = Sentinel1SlcStack(sourcedir="/data/slc/cn_qingdao").load().crop(aoi="/data/slc/cn_qingdao/14.geojson")
