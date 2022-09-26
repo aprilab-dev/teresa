@@ -39,6 +39,7 @@ class Coregistration(abc.ABC):
         polarization: str = "vv",
         dry_run: bool = True,
         prune: bool = True,
+        sophia: bool = False,
         radarcode_dem: bool = False,  # by default don't radarcode dem
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
@@ -47,6 +48,7 @@ class Coregistration(abc.ABC):
         self.output_dir = output_dir
         self.polarization = polarization
         self.dry_run = dry_run
+        self.sophia = sophia
         self.prune = prune
         self.radarcode_dem = radarcode_dem
         self._processor = coreg_processor  # interface
@@ -90,7 +92,10 @@ class Sentinel1Coregistration(Coregistration):
         self._merge()
         if self.radarcode_dem:  # if radarcode dem, do it before the prune
             self._radarcode_dem()
-        self._finalize()
+        if self.sophia:
+            self._finalize()
+        else: # 当不使用 sophia 处理时，单景影像中的 master 数据是需要的。
+            self._prune()
 
     def _prepare(self):
         self._serialize()  # serialize the output into a json file
@@ -98,7 +103,8 @@ class Sentinel1Coregistration(Coregistration):
     def _coregister(self):
         # the lofic for swath coregistration.
         # The concrete implementation is actually in _subswath_coregister.
-        for nsubswath in range(1, 4):  # starts from 1
+        self.subswath_number = 0
+        for nsubswath in ("IW1", "IW2", "IW3"):  # starts from 1
             self._coregister_subswath(nsubswath)
 
     def _coregister_subswath(self, nsubswath: int):
@@ -107,30 +113,33 @@ class Sentinel1Coregistration(Coregistration):
         graph = graphs.GptGraphS1Coreg.generate(self.slc_pair)
 
         # format gpt input
-        master_files = ",".join([source for source in self.slc_pair.master.source])
-        slave_files = ",".join([source for source in self.slc_pair.slave.source])
+        master_files = ",".join([source for source in getattr(self.slc_pair.master, nsubswath)["source"]])
+        slave_files = ",".join([source for source in getattr(self.slc_pair.slave, nsubswath)["source"]])
+        if not master_files:
+            return 
+        self.subswath_number += 1
         output_path = os.path.join(
             self.output_dir,
             COREG_DIR,
             self.slc_pair.slave.date,  # sort in dates
-            f"iw{nsubswath}",
+            nsubswath,
         )
 
         if not self.dry_run:
             logger.info(  # logging before exeuution
-                "COREGISTERING master %s and slave %s for swath IW%s:",
+                "COREGISTERING master %s and slave %s for swath %s:",
                 self.slc_pair.master.date,
                 self.slc_pair.slave.date,
                 nsubswath,
             )
 
-        master_bursts_indices = getattr(self.slc_pair.master, f"IW{nsubswath}")
-        slave_bursts_indices = getattr(self.slc_pair.slave, f"IW{nsubswath}")
+        master_bursts_indices = getattr(self.slc_pair.master, nsubswath)
+        slave_bursts_indices = getattr(self.slc_pair.slave, nsubswath)
 
         # Execute the actual coregistration
         self._processor.process(
             graph,
-            subswath=f"IW{nsubswath}",
+            subswath=nsubswath,
             polorization=self.polarization.upper(),
             master_files=master_files,
             slave_files=slave_files,
@@ -157,7 +166,7 @@ class Sentinel1Coregistration(Coregistration):
 
     def _merge(self):
 
-        graph = graphs.GptGraphS1Merge.generate()
+        graph = graphs.GptGraphS1Merge.generate(self.subswath_number)
 
         output_path = os.path.join(
             self.output_dir,
@@ -212,7 +221,14 @@ class Sentinel1Coregistration(Coregistration):
         pol = self.polarization.upper()
         master_datestr = format_date(self.slc_pair.master.date)
         for channel, suffix in product(("i", "q"), ("img", "hdr")):  # in-phase & quadrature channels
-            master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+            # master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+            # 当只有 subwath 的数量等于 1 时，merged.data 里面的数据是 i_vv_mst_20210101.img，否则是 i_IW1_vv_mst_20210101.img 形式
+            master_filename = (
+                f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+                if len(self.nsubswaths) > 1
+                else f"{channel}_IW{self.nsubswaths[0]}_{pol}_mst_{master_datestr}.{suffix}"
+            )
+
             dst_file = os.path.join(dst_dir, "merged.data", master_filename)
             src_file = os.path.join(src_dir, "merged.data", master_filename)
             # copy if not exists

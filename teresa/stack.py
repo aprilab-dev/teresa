@@ -3,9 +3,9 @@ import os
 import abc
 import logging
 
-from helpers import FindBursts
-from teresa import coregistration as coreg
-from teresa.log import LOG_FNAME
+from .helpers import FindBursts
+from . import coregistration as coreg
+from .log import LOG_FNAME
 
 logger = logging.getLogger("sLogger")
 
@@ -79,7 +79,7 @@ class Sentinel1SlcImage(SlcImage):
             setattr(
                 self,
                 f"IW{nsubswath}",
-                {"first_burst_index": 1, "last_burst_index": 999, "fmeta": self.source},
+                {"first_burst_index": 1, "last_burst_index": 999, "source": self.source},
             ) # 此处 "fmeta" 建议使用 SentinelImage 中的 source，这样可以在不使用 crop 的情况下，也同样可以运行
 
     def crop(self, aoi):
@@ -182,6 +182,7 @@ class Sentinel1SlcStack(SlcStack):
         output: str,
         dry_run: bool = True,
         prune: bool = True,
+        sophia: bool = False,
         update: bool = False,
     ) -> None:
         # check if master is in the slc dict
@@ -209,18 +210,18 @@ class Sentinel1SlcStack(SlcStack):
         when doing radarcoding of dem.
         """
         logger.info("RADARCODING DEM: Start.")
+        if sophia: # 在 sophia 的情况下才需要对 DEM 地理编码
+            Sentinel1SlcPair(
+                master=self.slc[master], slave=self.slc[master]  # radarcode DEM
+            ).coregister(
+                output_dir=output,
+                dry_run=dry_run,
+                prune=prune,
+                radarcode_dem=True,  # radarcode dem
+            )
 
-        Sentinel1SlcPair(
-            master=self.slc[master], slave=self.slc[master]  # radarcode DEM
-        ).coregister(
-            output_dir=output,
-            dry_run=dry_run,
-            prune=prune,
-            radarcode_dem=True,  # radarcode dem
-        )
+            logger.info("RADARCODING DEM: completed.")
+            logger.info(f"Processing complete! Log is saved to {LOG_FNAME}")
 
-        logger.info("RADARCODING DEM: completed.")
-        logger.info(f"Processing complete! Log is saved to {LOG_FNAME}")
-
-if __name__ == "__main__":
-    a = Sentinel1SlcStack(sourcedir="/data/slc/cn_qingdao").load().crop(aoi="/data/slc/cn_qingdao/14.geojson")
+# if __name__ == "__main__":
+#     a = Sentinel1SlcStack(sourcedir="/home/jerry/ceshi").load().crop(aoi="POLYGON((118.4939 36.8231,117.446 35.7963,118.7813 34.2381,120.5686 35.9625,119.8731 36.4895,118.4939 36.8231))").coregister(master="20210810",output="/home/jerry/output")

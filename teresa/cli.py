@@ -1,20 +1,25 @@
+print(__name__)
+
 import os
+import sys
 import click
 import shutil
 import logging
 import coloredlogs
 import click_log
 from datetime import datetime
-from . import stack, version
+import stack, version
 from .coregistration import COREG_DIR
 
 
+
+
 logger = logging.getLogger("sLogger")
-coloredlogs.install(  # set colored logs for console in cli
-    level=logger.level,
-    logger=logger,
-    fmt=logger.handlers[0].formatter._fmt  # type: ignore
-)
+# coloredlogs.install(  # set colored logs for console in cli
+#     level=logger.level,
+#     logger=logger,
+#     fmt=logger.handlers[0].formatter._fmt  # type: ignore
+# )
 
 
 @click.group()
@@ -68,3 +73,14 @@ def coregister(source_dir, destination, master, dry_run: bool, prune: bool):
 
     if dry_run:  # cleanup entire folder if dry run
         shutil.rmtree(os.path.join(destination, COREG_DIR))
+
+if __name__ == "__main__":
+    source_dir = "/home/jerry/ceshi"
+    coregister(["--dry-run",
+                "--source-dir",
+                source_dir,
+                "--destination",
+                source_dir,
+                "--master",
+                "20210810",])
+    

@@ -2,8 +2,8 @@ import os
 import pytest
 from click.testing import CliRunner
 from teresa.cli import main
-from teresa.log import LOG_FNAME
-from teresa.coregistration import COREG_DIR, format_date
+from log import LOG_FNAME
+from coregistration import COREG_DIR, format_date
 from . import conftest
 
 mocked_s1_slcstack = [

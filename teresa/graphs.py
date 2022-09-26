@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from num2words import num2words
 
 CUR_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -25,8 +26,8 @@ class GptGraphS1Coreg(GptGraph):
 
 class GptGraphS1Merge(GptGraph):
     @staticmethod
-    def generate():
-        nsubswaths = "three"   # only support merging all three subswath.
+    def generate(subswath_number):
+        nsubswaths = num2words(subswath_number)   # only support merging all three subswath.
         graph = f"graphs/merge_{nsubswaths}_subswaths.xml"
         return os.path.join(CUR_DIR, graph)
 

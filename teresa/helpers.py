@@ -1,6 +1,7 @@
 import os
 import re
 import glob
+import shapely.wkt
 
 import geojson
 import requests
@@ -52,27 +53,41 @@ def latlon_to_city(lat: float, lon: float) -> str:
     return "cn_" + "".join(nearest_city)
 
 class FindBursts:
-    """根据输入的 AOI 寻找影像中对应的 subswath 和 burst
+    """输入 Sentinel1SlcImage 对象和 geojson 格式的 aoi 文件，计算每一个 subwath 所需的数据以及它们对应的
+    起止 burst
 
-    Parameters
-    ----------
-    sourcedir : str
+    参数
+    ---
+    slc_image : Object
         S1 原始 zip 文件的存放路径，目录下可以存放其他文件
-    geojson: str
-            目标区域 geojson 文件的绝对存储路径
+    geo_json: str
+        目标区域 geojson 文件的存储路径
+
+    例子
+    ---
+    slc_image : 
+        输入的 slc_image 已经初始化 IW1, IW2, IW3 属性，以 IW1 属性为例，其初始化后的格式为 
+        {"first_burst_index": 1, "last_burst_index": 999,"fmeta": self.source}, 计算后属性变为
+        {"first_burst_index": 2, "last_burst_index": 8,"fmeta": (source_iw)}，其中的 source_iw 为 IW1
+        条带所需的所有数据。
     """
     def __init__(self, slc_image, geo_json: str):
+        """在对象初始化阶段，将 geojson 格式的 aoi 文件转为 Polygon，获取存放该 Sentinel1SlcImage 源文件的路径
+        self.meta_sourcedir 并将这些源文件使用 self.extract_meta 提取出来。
+        """
         self.slc_image = slc_image
-        self.aoi = self._geojson2polygon(geo_json)
         self.meta_sourcedir = os.path.join(os.path.dirname(slc_image.source[0]), slc_image.date)
         self._extract_meta()
+        if os.path.isfile(geo_json): #发现实际使用时直接使用 ASF 的 Polygon 字符串更方便些，增加一个数据类型接口。
+            self.aoi = self._geojson2polygon(geo_json)
+        else:
+            self.aoi = shapely.wkt.loads(geo_json)
 
     def _extract_meta(self):
-        """#DEPRECATED: 这个 function 应该后面没有啥用了。
-        extract 是读取:obj:`Sentinel1SlcImage` 类中的元数据所需要的方法。
+        """提取输入对象中 source 属性下的所有 zip 文件的源文件，存放在工作目录下对应日期的目录下面。
         """
         def _unzip(fzip):
-            # 将某一个 SentinelSlcImage 中的所有条带 xml 文件解压到一个
+            # 将一景 zip 格式的文件中的 xml 文件提取到目标目录。
             try:
                 zip_file = zipfile.ZipFile(fzip)
             except:
@@ -82,20 +97,16 @@ class FindBursts:
                 if not re_matched:
                     continue
                 zip_file.extract(fxml, self.meta_sourcedir)
-        # 解压
-        for fzip in self.slc_image.source: # 此处是 source 而不是 sourcedir，因为是只提取一个对象的元数据，这个对象有可能包含多个数据。
+        # 将该 Sentinel1SlcImage 对象 source 属性中的所有 zip 文件的 xml 文件提取。
+        for fzip in self.slc_image.source:
             _unzip(fzip)
-        return self
 
-    def _read_xml(self, xml_file: str) -> dict:
-        """Extract useful information in xml file into a dictionary
-
-        Examples
-        -------
-        xml_info :
-            {"lines": [0, 1, 2, ...], "pixels": [2, 3, 4, ...], ...}
+    def _read_xml(self, fxml: str) -> dict:
+        """读取一个 xml 文件中所需的信息，存放到 self.xml_info 中，points_info 是一个 np.array 格式的数组，
+        第一行至第四行以此是：行坐标，列坐标，经度，纬度，其每一列是一一对应的关系，这样可以使用矩阵固定它们之间的
+        关系。
         """
-        xml = etree.parse(xml_file, etree.XMLParser())
+        xml = etree.parse(fxml, etree.XMLParser())
         line_per_burst, numbers_per_subswath = int(xml.xpath("//linesPerBurst/text()")[0]), int(xml.xpath("//numberOfLines/text()")[0])
         lines, pixels = list(map(int, xml.xpath("//line/text()"))), list(map(int, xml.xpath("//pixel/text()")))
         longitudes, latitudes = list(map(float, xml.xpath("//longitude/text()"))), list(map(float, xml.xpath("//latitude/text()")))
@@ -108,27 +119,26 @@ class FindBursts:
         }
 
     def _geojson2polygon(self, geojson_file: str) -> Polygon:
-        """
-        Convert geojson file to polygon
+        """将 geojson 格式的文件转为 Polygon
         """
         with open(geojson_file) as f:
             geojson_context = geojson.load(f)
-        try:
+        try:# 不同方式建立的 geojson 文件格式可能会不同
             boundary = shape(geojson_context["features"][0]["geometry"])
         except:
             boundary = shape(geojson_context)
         return boundary
 
     def find_burst_in_overlap(self, overlap) -> int:
-        """计算 overlap 在每个 subswath 上对应的起止 burst
+        """计算 aoi 与单个 subswath 相交区域在该 subswath 所对应的 burst 的起止编号。
 
-        Parameters
-        ---------
+        参数
+        ---
         overlap : polygon
             AOI 与该 subswath 相交的区域
 
-        Returns
-        -------
+        返回
+        ---
         burst_start : int
             burst 起始编号
         burst_end : int
@@ -140,10 +150,7 @@ class FindBursts:
             int(self.xml_info["burst_number"]),
         )
         lonlat = points_info[2:4].T
-        coefficient = np.concatenate(
-            (np.ones((lonlat.shape[0], 1)), lonlat),
-            axis=1,
-        )
+        coefficient = np.concatenate((np.ones((lonlat.shape[0], 1)), lonlat) ,axis=1)
         w0, w1, w2 = np.linalg.lstsq(coefficient, points_info[0], rcond=None)[0]
         coordinates = list(overlap.exterior.coords)
         bursts = []
@@ -158,44 +165,39 @@ class FindBursts:
             burst_start, burst_end = min(bursts), max(bursts)
         return burst_start, burst_end
 
-    def xml2polygon(self, fxml):
+    def xml2polygon(self, fxml: str) -> Polygon:
+        """将单个 xml 文件转化为其对应的范围 Polygon
+        """
         self._read_xml(fxml)
         points_info = self.xml_info["points_info"]
         up_index = np.where(points_info[0] == 0)
         low_index = np.where(points_info[0] == np.max(points_info[0]))
         left_index = np.where(points_info[1] == 0)
         right_index = np.where(points_info[1] == np.max(points_info[1]))
-        left_up_corner = points_info[2:4, np.intersect1d(up_index, left_index)].tolist()
-        right_up_corner = points_info[
-            2:4, np.intersect1d(up_index, right_index)
-        ].tolist()
-        right_low_corner = points_info[
-            2:4, np.intersect1d(low_index, right_index)
-        ].tolist()
-        left_low_corner = points_info[
-            2:4, np.intersect1d(low_index, left_index)
-        ].tolist()
+        left_up = points_info[2:4, np.intersect1d(up_index, left_index)].tolist()
+        right_up = points_info[2:4, np.intersect1d(up_index, right_index)].tolist()
+        right_low = points_info[2:4, np.intersect1d(low_index, right_index)].tolist()
+        left_low = points_info[2:4, np.intersect1d(low_index, left_index)].tolist()
         coordinates = []
-        for corner in (left_up_corner, right_up_corner, right_low_corner, left_low_corner, left_up_corner):
+        for corner in (left_up, right_up, right_low, left_low, left_up):
             coordinates.append([corner[0][0], corner[1][0]])
         xml_boundary = Polygon(coordinates)
         return xml_boundary
 
-    def get_burst_source(self, iw):
-        """Returns一个字典，字典的 key 是 AOI 对应的 subswath 编号，key 的值是 AOI 在该 subswath 上所对应 burst 的起止编号
+    def get_bursts_and_source(self, iw: str):
+        """Sentinel1SlcImage 有IW1，IW2，IW3 三个属性，此函数计算该条带所需的影像数据，以及在每景影像上对应的 burst 起止编号。
+        止编号。
 
-        Parameters
-        ----------
-        file_name : str
-            sourcedir 下 S1 原始文件名称
+        参数
+        ---
+        iw : str
+            条带名称，有 IW1，IW2，IW3
 
-        Returns
-        -------
-        swath_burst : dict
-            返回的字典中包含覆盖 AOI 的最小条带信息，比如返回值是 {'IW1':[2,3], 'IW2':[3,3]}，对应的第一个条带的 第2，3 burst 和第二个条带
-            的 第3 burst
+        例子
+        ---
+        如果输入的参数为 IW1，假设该条带需要两景影像，1.zip 和 2.zip，在 1.zip 影像中对应的 burst 起止编号为 5-9，在 2.zip 中
+        对应的 burst 的起止编号为 1-3，则返回的 bursts_start，bursts_end 和 source 的值分别为 (5,1)，(9,3)，(../1.zip, ../2.zip)
         """
-        # minimum_overlappings = {}
         source, bursts_start, bursts_end = (), (), ()
         meta_dir = self.meta_sourcedir
         for safe_file in os.listdir(meta_dir):
@@ -214,12 +216,22 @@ class FindBursts:
         return bursts_start, bursts_end, source
 
     def get_minimum_overlapping(self) -> dict:
+        """此函数为 stack 中 crop 的接口函数
+
+        例子
+        ---
+        index_and_source : dict
+            字典的 key 值为 subwath 编号，为 IW1，IW2，IW3。value 值为每个条带对应的起始 burst 编号和终止 burst 编号，以及其所需的
+            zip 文件，以 IW1 为例，假设该条带需要两景影像，1.zip 和 2.zip，在 1.zip 影像中对应的 burst 起止编号为 5-9，在 2.zip 中
+            对应的 burst 的起止编号为 1-3。其在 index_and_source 中的形式为 {"IW1": {"first_burst_index": 5, 
+            "last_burst_index": 12, "source": (../1.zip, ../2.zip)}
+        """
         index_and_source = {}
         for iw in ("IW1", "IW2", "IW3"):
-            start_bursts, end_bursts, source = self.get_burst_source(iw.lower()) # 获取此 subswath 的起止编号和此 subswath 需要的影像数据。
+            start_bursts, end_bursts, source = self.get_bursts_and_source(iw.lower()) # 获取此 subswath 的起止编号和此 subswath 需要的影像数据。
             if not (start_bursts and end_bursts):
                 index_and_source[iw] = {"first_burst_index": 0, "last_burst_index": 0, "source": ()}
                 continue
-            start_burst, end_burst = max(start_bursts), min(end_bursts)
+            start_burst, end_burst = max(start_bursts), sum(end_bursts) #start_bursts 中的最大值为该 subswath 的起始编号，end_bursts 中的最小值为终止编号。
             index_and_source[iw] = {"first_burst_index": start_burst, "last_burst_index": end_burst, "source": source}
         return index_and_source
