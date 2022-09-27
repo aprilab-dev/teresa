@@ -2,6 +2,7 @@ import os
 import re
 import glob
 import shapely.wkt
+from tests import conftest
 
 import geojson
 import requests
@@ -53,14 +54,14 @@ def latlon_to_city(lat: float, lon: float) -> str:
     return "cn_" + "".join(nearest_city)
 
 class FindBursts:
-    """输入 Sentinel1SlcImage 对象和 geojson 格式的 aoi 文件，计算每一个 subwath 所需的数据以及它们对应的
-    起止 burst
+    """输入 Sentinel1SlcImage 对象和 geojson 格式或 Polygon 字符串的 aoi 文件，计算每一个 subwath 所需的数据以及它们
+    对应的起止 burst
 
     参数
     ---
     slc_image : Object
         S1 原始 zip 文件的存放路径，目录下可以存放其他文件
-    geo_json: str
+    aoi: str
         目标区域 geojson 文件的存储路径
 
     例子
@@ -71,17 +72,17 @@ class FindBursts:
         {"first_burst_index": 2, "last_burst_index": 8,"fmeta": (source_iw)}，其中的 source_iw 为 IW1
         条带所需的所有数据。
     """
-    def __init__(self, slc_image, geo_json: str):
+    def __init__(self, slc_image, aoi: str):
         """在对象初始化阶段，将 geojson 格式的 aoi 文件转为 Polygon，获取存放该 Sentinel1SlcImage 源文件的路径
         self.meta_sourcedir 并将这些源文件使用 self.extract_meta 提取出来。
         """
         self.slc_image = slc_image
         self.meta_sourcedir = os.path.join(os.path.dirname(slc_image.source[0]), slc_image.date)
         self._extract_meta()
-        if os.path.isfile(geo_json): #发现实际使用时直接使用 ASF 的 Polygon 字符串更方便些，增加一个数据类型接口。
-            self.aoi = self._geojson2polygon(geo_json)
+        if os.path.isfile(aoi): #发现实际使用时直接使用 ASF 的 Polygon 字符串更方便些，增加一个数据类型接口。
+            self.aoi = self._geojson2polygon(aoi)
         else:
-            self.aoi = shapely.wkt.loads(geo_json)
+            self.aoi = shapely.wkt.loads(aoi)
 
     def _extract_meta(self):
         """提取输入对象中 source 属性下的所有 zip 文件的源文件，存放在工作目录下对应日期的目录下面。
@@ -216,7 +217,7 @@ class FindBursts:
         return bursts_start, bursts_end, source
 
     def get_minimum_overlapping(self) -> dict:
-        """此函数为 stack 中 crop 的接口函数
+        """此函数为 crop 的接口函数
 
         例子
         ---

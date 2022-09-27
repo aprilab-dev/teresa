@@ -2,6 +2,7 @@ import re
 import os
 import abc
 import logging
+import shutil
 
 from teresa.helpers import FindBursts
 import teresa.coregistration as coreg
@@ -100,6 +101,8 @@ class Sentinel1SlcImage(SlcImage):
         """
         # 此处逻辑是针对于每个 SlcImage 对象中的 IW1，IW2，IW3 的属性，以对应的 xml 文件来进行更新
         cropping_attributes = FindBursts(self, aoi).get_minimum_overlapping() # 此处作用是更新 SlcImage 中的 IW1，IW2，IW3 属性
+        sourcedir = os.path.dirname(self.source[0])
+        shutil.rmtree(os.path.join(sourcedir, self.date)) # 用完之后删掉
         for subswath, attribute in cropping_attributes.items():
             setattr(self, subswath, attribute) # 
         # 目前是一个空的函数，后面会更新
@@ -215,7 +218,7 @@ class Sentinel1SlcStack(SlcStack):
         when doing radarcoding of dem.
         """
         logger.info("RADARCODING DEM: Start.")
-        if sophia: # 在 sophia 的情况下才需要对 DEM 地理编码
+        if sophia: # 在 sophia 的情况下才需要对 DEM 地理编码，在不需 sophia 时无需再对自身做一次配准。
             Sentinel1SlcPair(
                 master=self.slc[master], slave=self.slc[master]  # radarcode DEM
             ).coregister(
@@ -227,7 +230,3 @@ class Sentinel1SlcStack(SlcStack):
 
             logger.info("RADARCODING DEM: completed.")
             logger.info(f"Processing complete! Log is saved to {LOG_FNAME}")
-
-if __name__ == "__main__":
-    sourcedir = "/tmp/pytest-of-jerry/pytest-30/test_sentinel1_slcstack_coregi9/stacks"
-    a = Sentinel1SlcStack(sourcedir=sourcedir).load().crop(aoi=None).coregister(master="20210507", output=sourcedir, prune=True, sophia=True)

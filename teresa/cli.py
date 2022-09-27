@@ -12,6 +12,7 @@ from teresa.coregistration import COREG_DIR
 
 
 logger = logging.getLogger("sLogger")
+# coleredlogs 的 handlers 缺省，暂时注释掉
 # coloredlogs.install(  # set colored logs for console in cli
 #     level=logger.level,
 #     logger=logger,
@@ -54,7 +55,7 @@ def main():
 @click_log.simple_verbosity_option(logger=logger)
 @click.option("--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run.")
 @click.option("--prune/--no-prune", default=True, help="Remove temporary processing data.")
-@click.option("--aoi",default=None)
+@click.option("--aoi",default=None, help="请输入 AOI 文件，缺省时则全景处理") # 增加一个输入参数
 def coregister(source_dir, destination, master, dry_run: bool, prune: bool, aoi: bool):
     """
     Coregistrating a stack of SAR SLC images from source directory
@@ -71,14 +72,3 @@ def coregister(source_dir, destination, master, dry_run: bool, prune: bool, aoi:
 
     if dry_run:  # cleanup entire folder if dry run
         shutil.rmtree(os.path.join(destination, COREG_DIR))
-
-if __name__ == "__main__":
-    source_dir = "/tmp/pytest-of-jerry/pytest-35/test_cli_coregister_create_sta0/stacks"
-    coregister(["--dry-run",
-                "--source-dir",
-                source_dir,
-                "--destination",
-                source_dir,
-                "--master",
-                "20210507",])
-    

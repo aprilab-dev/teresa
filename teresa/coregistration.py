@@ -39,7 +39,7 @@ class Coregistration(abc.ABC):
         polarization: str = "vv",
         dry_run: bool = True,
         prune: bool = True,
-        sophia: bool = False,
+        sophia: bool = False, # 增加一个 sophia 选项
         radarcode_dem: bool = False,  # by default don't radarcode dem
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
@@ -110,11 +110,11 @@ class Sentinel1Coregistration(Coregistration):
         graph = graphs.GptGraphS1Coreg.generate(self.slc_pair)
 
         # format gpt input
-        master_files = ",".join([source for source in getattr(self.slc_pair.master, nsubswath)["source"]])
+        master_files = ",".join([source for source in getattr(self.slc_pair.master, nsubswath)["source"]]) # 获取这个 subswath 所需的文件，而不是以前所有的文件。
         slave_files = ",".join([source for source in getattr(self.slc_pair.slave, nsubswath)["source"]])
-        if not master_files:
+        if not master_files: # 获取每个 subswath 对应的 source 文件，若为空，则无需处理此 subswath
             return 
-        self.subswaths += (nsubswath,)
+        self.subswaths += (nsubswath,) # 将需要处理的 subswath 编号添加到一个元组中，此元组的作用有两个，一是判断需要 merge 的条带数选择对应的 xml 文件，另一个是 link_master 中伪造文件。
         output_path = os.path.join(
             self.output_dir,
             COREG_DIR,
