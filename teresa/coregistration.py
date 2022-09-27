@@ -92,10 +92,7 @@ class Sentinel1Coregistration(Coregistration):
         self._merge()
         if self.radarcode_dem:  # if radarcode dem, do it before the prune
             self._radarcode_dem()
-        if self.sophia:
-            self._finalize()
-        else: # 当不使用 sophia 处理时，单景影像中的 master 数据是需要的。
-            self._prune()
+        self._finalize()
 
     def _prepare(self):
         self._serialize()  # serialize the output into a json file
@@ -103,7 +100,7 @@ class Sentinel1Coregistration(Coregistration):
     def _coregister(self):
         # the lofic for swath coregistration.
         # The concrete implementation is actually in _subswath_coregister.
-        self.subswath_number = 0
+        self.subswaths = ()
         for nsubswath in ("IW1", "IW2", "IW3"):  # starts from 1
             self._coregister_subswath(nsubswath)
 
@@ -117,7 +114,7 @@ class Sentinel1Coregistration(Coregistration):
         slave_files = ",".join([source for source in getattr(self.slc_pair.slave, nsubswath)["source"]])
         if not master_files:
             return 
-        self.subswath_number += 1
+        self.subswaths += (nsubswath,)
         output_path = os.path.join(
             self.output_dir,
             COREG_DIR,
@@ -166,7 +163,7 @@ class Sentinel1Coregistration(Coregistration):
 
     def _merge(self):
 
-        graph = graphs.GptGraphS1Merge.generate(self.subswath_number)
+        graph = graphs.GptGraphS1Merge.generate(self.subswaths)
 
         output_path = os.path.join(
             self.output_dir,
@@ -225,8 +222,8 @@ class Sentinel1Coregistration(Coregistration):
             # 当只有 subwath 的数量等于 1 时，merged.data 里面的数据是 i_vv_mst_20210101.img，否则是 i_IW1_vv_mst_20210101.img 形式
             master_filename = (
                 f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
-                if len(self.nsubswaths) > 1
-                else f"{channel}_IW{self.nsubswaths[0]}_{pol}_mst_{master_datestr}.{suffix}"
+                if len(self.subswaths) > 1
+                else f"{channel}_IW{self.subswaths[0]}_{pol}_mst_{master_datestr}.{suffix}"
             )
 
             dst_file = os.path.join(dst_dir, "merged.data", master_filename)

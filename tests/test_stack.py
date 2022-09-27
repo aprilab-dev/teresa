@@ -1,8 +1,9 @@
+from locale import atoi
 import os
 import pytest
 from teresa import stack, log
 from teresa.coregistration import COREG_DIR, format_date
-from . import conftest
+from tests import conftest
 
 
 mocked_s1_slcstack = [
@@ -39,7 +40,7 @@ def test_sentinel1_slcstack_bursts_indices(tmpdir, mocked):
 def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
     source_dir, slc_len = mocked(tmpdir)
     tmp_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
-    tmp_stack.coregister(master="20210507", output=source_dir, prune=prune)
+    tmp_stack.crop(aoi=None).coregister(master="20210507", output=source_dir, prune=prune, sophia=True)
     # check if output is in the log
     assert os.path.join(source_dir, COREG_DIR) in open(log.LOG_FNAME).read()
 

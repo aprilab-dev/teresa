@@ -26,8 +26,8 @@ class GptGraphS1Coreg(GptGraph):
 
 class GptGraphS1Merge(GptGraph):
     @staticmethod
-    def generate(subswath_number):
-        nsubswaths = num2words(subswath_number)   # only support merging all three subswath.
+    def generate(subswaths: tuple):
+        nsubswaths = num2words(len(subswaths))   # only support merging all three subswath.
         graph = f"graphs/merge_{nsubswaths}_subswaths.xml"
         return os.path.join(CUR_DIR, graph)
 

@@ -3,9 +3,9 @@ import os
 import abc
 import logging
 
-from .helpers import FindBursts
-from . import coregistration as coreg
-from .log import LOG_FNAME
+from teresa.helpers import FindBursts
+import teresa.coregistration as coreg
+from teresa.log import LOG_FNAME
 
 logger = logging.getLogger("sLogger")
 
@@ -168,8 +168,13 @@ class Sentinel1SlcStack(SlcStack):
         # implement crop logic on each date/acquisition
         completed_item = 0
         for acquisition, _ in self.slc.items():
-            self.slc[acquisition].crop(aoi=aoi)
-            completed_item += 1
+            if not aoi: # 当不需要 crop 时，将 slc 的 source 中的数据赋值给所有的 IW。
+                self.slc[acquisition].IW1["source"] = self.slc[acquisition].source
+                self.slc[acquisition].IW2["source"] = self.slc[acquisition].source
+                self.slc[acquisition].IW3["source"] = self.slc[acquisition].source
+            else:
+                self.slc[acquisition].crop(aoi=aoi)
+                completed_item += 1
             logger.info(
                 f"CROP PROCESS: {completed_item}/{len(self.slc.items())} completed."
             )
@@ -223,5 +228,6 @@ class Sentinel1SlcStack(SlcStack):
             logger.info("RADARCODING DEM: completed.")
             logger.info(f"Processing complete! Log is saved to {LOG_FNAME}")
 
-# if __name__ == "__main__":
-#     a = Sentinel1SlcStack(sourcedir="/home/jerry/ceshi").load().crop(aoi="POLYGON((118.4939 36.8231,117.446 35.7963,118.7813 34.2381,120.5686 35.9625,119.8731 36.4895,118.4939 36.8231))").coregister(master="20210810",output="/home/jerry/output")
+if __name__ == "__main__":
+    sourcedir = "/tmp/pytest-of-jerry/pytest-30/test_sentinel1_slcstack_coregi9/stacks"
+    a = Sentinel1SlcStack(sourcedir=sourcedir).load().crop(aoi=None).coregister(master="20210507", output=sourcedir, prune=True, sophia=True)

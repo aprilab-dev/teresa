@@ -1,16 +1,13 @@
-print(__name__)
-
+from email.policy import default
 import os
-import sys
 import click
 import shutil
 import logging
 import coloredlogs
 import click_log
 from datetime import datetime
-import stack, version
-from .coregistration import COREG_DIR
-
+from teresa import stack, version
+from teresa.coregistration import COREG_DIR
 
 
 
@@ -57,13 +54,14 @@ def main():
 @click_log.simple_verbosity_option(logger=logger)
 @click.option("--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run.")
 @click.option("--prune/--no-prune", default=True, help="Remove temporary processing data.")
-def coregister(source_dir, destination, master, dry_run: bool, prune: bool):
+@click.option("--aoi",default=None)
+def coregister(source_dir, destination, master, dry_run: bool, prune: bool, aoi: bool):
     """
     Coregistrating a stack of SAR SLC images from source directory
     """
 
     # run coregistration
-    loaded_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
+    loaded_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load().crop(aoi=aoi)
     loaded_stack.coregister(
         output=destination,
         master=datetime.strftime(master, "%Y%m%d"),
@@ -75,12 +73,12 @@ def coregister(source_dir, destination, master, dry_run: bool, prune: bool):
         shutil.rmtree(os.path.join(destination, COREG_DIR))
 
 if __name__ == "__main__":
-    source_dir = "/home/jerry/ceshi"
+    source_dir = "/tmp/pytest-of-jerry/pytest-35/test_cli_coregister_create_sta0/stacks"
     coregister(["--dry-run",
                 "--source-dir",
                 source_dir,
                 "--destination",
                 source_dir,
                 "--master",
-                "20210810",])
+                "20210507",])
     
