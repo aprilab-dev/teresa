@@ -1,3 +1,6 @@
+import os
+from teresa.stack import Sentinel1SlcImage
+
 def create_multiple_masters_multiple_slaves(tmpdir):
     test_slc_dir = tmpdir.mkdir("multiple_masters_multiple_slaves")
     slcs = [
@@ -60,3 +63,10 @@ def create_stacks(tmpdir):
     for slc in slcs:
         test_slc_dir.join(slc).write("stacks")
     return test_slc_dir, {"20210507": 2, "20210519": 2, "20210401": 2}
+
+def create_slcimage(date, sourcedir):
+    # 根据日期和 source 创建一个 Sentinel1SlcImage 对象，以供 FindBusrts 单元测试使用。
+    slc_img = Sentinel1SlcImage(date=date)
+    source = tuple(os.path.join(sourcedir, fzip) for fzip in os.listdir(sourcedir))
+    slc_img.source = source
+    return slc_img
