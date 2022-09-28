@@ -1,4 +1,3 @@
-from email.policy import default
 import os
 import click
 import shutil
@@ -13,11 +12,11 @@ from teresa.coregistration import COREG_DIR
 
 logger = logging.getLogger("sLogger")
 # coleredlogs 的 handlers 缺省，暂时注释掉
-# coloredlogs.install(  # set colored logs for console in cli
-#     level=logger.level,
-#     logger=logger,
-#     fmt=logger.handlers[0].formatter._fmt  # type: ignore
-# )
+coloredlogs.install(  # set colored logs for console in cli
+    level=logger.level,
+    logger=logger,
+    fmt=logger.handlers[0].formatter._fmt  # type: ignore
+)
 
 
 @click.group()
