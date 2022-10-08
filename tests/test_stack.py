@@ -1,5 +1,5 @@
-from locale import atoi
 import os
+from tempfile import tempdir
 import pytest
 from teresa import stack, log
 from teresa.coregistration import COREG_DIR, format_date
@@ -21,7 +21,9 @@ def test_sentinel1_slcstack_load(tmpdir, mocked):
     tmp_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
     for key, value in tmp_stack.slc.items():
         # check if the length of loaded images are correct (check the predefined dictionary)
-        assert len(value.source) == slc_len[key]
+        for subswath in ("IW1", "IW2", "IW3"):
+            assert len(getattr(value, subswath)["source"]) == slc_len[key]
+
 
 @pytest.mark.parametrize("mocked", mocked_s1_slcstack)
 def test_sentinel1_slcstack_bursts_indices(tmpdir, mocked):
@@ -31,8 +33,8 @@ def test_sentinel1_slcstack_bursts_indices(tmpdir, mocked):
     for key, _ in tmp_stack.slc.items():
         for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
             bursts_indices = getattr(tmp_stack.slc[key], f"IW{nsubswath}")
-            assert bursts_indices["first_burst_index"]==1
-            assert bursts_indices["last_burst_index"]==999
+            assert bursts_indices["first_burst_index"] == 1
+            assert bursts_indices["last_burst_index"] == 999
 
 
 @pytest.mark.parametrize("mocked", mocked_s1_slcstack)
@@ -40,7 +42,9 @@ def test_sentinel1_slcstack_bursts_indices(tmpdir, mocked):
 def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
     source_dir, slc_len = mocked(tmpdir)
     tmp_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
-    tmp_stack.crop(aoi=None).coregister(master="20210507", output=source_dir, prune=prune, sophia=True)
+    tmp_stack.coregister(
+        master="20210507", output=source_dir, prune=prune, radarcode_dem=True
+    )  # 添加 radarcode_dem 为 True
     # check if output is in the log
     assert os.path.join(source_dir, COREG_DIR) in open(log.LOG_FNAME).read()
 
@@ -48,11 +52,11 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
     pol = "VV"  # TODO: hardcoded for now
     for channel, suffix in [(c, s) for c in ("i", "q") for s in ("img", "hdr")]:
         for slave, _ in tmp_stack.slc.items():
+            if slave == "20210507":  # 如果 prune=True，主影像路径下不应该有 i_VV_slave..文件，加一个判断逻辑。
+                continue
             slave_datestr = format_date(slave)
             slave_filename = f"{channel}_{pol}_slv_{slave_datestr}.{suffix}"
-            assert os.path.isfile(
-                os.path.join(source_dir, COREG_DIR, slave,"merged.data", slave_filename)
-        )
+            assert os.path.isfile(os.path.join(source_dir, COREG_DIR, slave, "merged.data", slave_filename))
 
     # assert DEM file exstence
     assert os.path.isfile(os.path.join(source_dir, COREG_DIR, "DEM", "merged.dim"))
@@ -65,8 +69,8 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
             for slave, _ in tmp_stack.slc.items():
                 master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
                 assert os.path.isfile(
-                    os.path.join(source_dir, COREG_DIR, slave,"merged.data",master_filename)
-            )
+                    os.path.join(source_dir, COREG_DIR, slave, "merged.data", master_filename)
+                )
 
     # assert file NOT existence if prune
     if prune:
@@ -76,12 +80,15 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
                     continue
                 master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
                 assert not os.path.isfile(
-                    os.path.join(source_dir, COREG_DIR, slave,"merged.data",master_filename)
+                    os.path.join(source_dir, COREG_DIR, slave, "merged.data", master_filename)
                 )
         # check DEM existence
         assert not os.path.isfile(
-            os.path.join(source_dir, COREG_DIR, "DEM", "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr")
+            os.path.join(
+                source_dir, COREG_DIR, "DEM", "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr"
+            )
         )
+
 
 def test_slcimage_append():
     # create a dummy SLCImage object

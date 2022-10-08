@@ -1,11 +1,11 @@
-import re
-import os
 import abc
 import logging
+import os
+import re
 import shutil
 
-from teresa.helpers import FindBursts
 import teresa.coregistration as coreg
+from teresa.helpers import FindBursts
 from teresa.log import LOG_FNAME
 
 logger = logging.getLogger("sLogger")
@@ -33,7 +33,7 @@ class SlcImage:
         date : str
         """
         self.date = date
-        self.source = ()  # 一个日期的 SlcImage 所对应的文件（们）
+        self.sourcedir = ""  # 一个日期的 SlcImage 所对应的文件（们）
         self.destination = ()  # 该日期的 SlcImage 的处理结果存放的路径
 
     def append(self, **kwargs):
@@ -75,13 +75,17 @@ class Sentinel1SlcImage(SlcImage):
         """
 
         super(Sentinel1SlcImage, self).__init__(date)
-        for nsubswath in range(1, 4):  # initialize bursts indice for 3 subswath
+        for nsubswath in ("IW1", "IW2", "IW3"):  # initialize bursts indice for 3 subswath
             # 定义 fmeta（metafile路径们）为空元组
             setattr(
                 self,
-                f"IW{nsubswath}",
-                {"first_burst_index": 1, "last_burst_index": 999, "source": self.source},
-            ) # 此处 "fmeta" 建议使用 SentinelImage 中的 source，这样可以在不使用 crop 的情况下，也同样可以运行
+                nsubswath,
+                {
+                    "first_burst_index": 1,
+                    "last_burst_index": 999,
+                    "source": (),
+                },
+            )  # 此处 "fmeta" 建议使用 SentinelImage 中的 source，这样可以在不使用 crop 的情况下，也同样可以运行
 
     def crop(self, aoi):
         """`crop()` 是单日影像的裁剪业务逻辑。请注意，这个逻辑目前只有 S1 需要，所以是一个
@@ -97,14 +101,22 @@ class Sentinel1SlcImage(SlcImage):
 
         Example
         -------
-        业务逻辑框架见 FRINGE-314 中的讨论。
+        此时的 Sentinel1SlcImage 的三个属性 IW1,IW2,IW3 都是相同的，即初始化时的值，例如 IW1 的属性值为
+        >>>{'first_burst_index': 1, 'last_burst_index': 999,
+        >>>'source': ('/home/jerry/ceshi/S1A_IW_SLC__1SDV_20210822T100443_20210822T100510_039341_04A572_E5E3.zip',
+        >>>'/home/jerry/ceshi/S1A_IW_SLC__1SDV_20210822T100418_20210822T100445_039341_04A572_25BF.zip')}
+        经此计算后，例如 IW2 条带需要两景影像，起止编号为 3,18，则此时 IW2 属性变为
+        >>>{'first_burst_index': 3, 'last_burst_index': 18,
+        >>>'source': ('/home/jerry/ceshi/S1A_IW_SLC__1SDV_20210822T100443_20210822T100510_039341_04A572_E5E3.zip',
+        >>>'/home/jerry/ceshi/S1A_IW_SLC__1SDV_20210822T100418_20210822T100445_039341_04A572_25BF.zip')}
         """
         # 此处逻辑是针对于每个 SlcImage 对象中的 IW1，IW2，IW3 的属性，以对应的 xml 文件来进行更新
-        cropping_attributes = FindBursts(self, aoi).get_minimum_overlapping() # 此处作用是更新 SlcImage 中的 IW1，IW2，IW3 属性
-        sourcedir = os.path.dirname(self.source[0])
-        shutil.rmtree(os.path.join(sourcedir, self.date)) # 用完之后删掉
+        cropping_attributes = FindBursts(
+            self, aoi
+        ).get_minimum_overlapping()  # 此处作用是更新 SlcImage 中的 IW1，IW2，IW3 属性
+        shutil.rmtree(os.path.join(self.sourcedir, self.date))  # 用完之后删掉
         for subswath, attribute in cropping_attributes.items():
-            setattr(self, subswath, attribute) # 
+            setattr(self, subswath, attribute)
         # 目前是一个空的函数，后面会更新
         return self
 
@@ -141,18 +153,16 @@ class Sentinel1SlcStack(SlcStack):
             # https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions
             if re.search(r"S1[A|B]_IW_SLC", file):
                 # get the date from the filename
-                acquisition = re.search(
-                    r"S1[A|B]_IW_SLC_.+(20\d{6})T\d{6}_20\d{6}T\d{6}_.+", file
-                ).group(
+                acquisition = re.search(r"S1[A|B]_IW_SLC_.+(20\d{6})T\d{6}_20\d{6}T\d{6}_.+", file).group(
                     1
                 )  # type: ignore
                 # check if key exist
                 if acquisition not in self.slc:
                     self.slc[acquisition] = Sentinel1SlcImage(date=acquisition)
-
-                self.slc[acquisition].source += (
-                    os.path.join(self.sourcedir, file),
-                )  # update tuple
+                    self.slc[acquisition].sourcedir = self.sourcedir
+                for subswath in ("IW1", "IW2", "IW3"):
+                    subswath = getattr(self.slc[acquisition], subswath)
+                    subswath["source"] += (os.path.join(self.sourcedir, file),)  # 将 SlcImage 的三个 IW 先初始化。
         return self
 
     def crop(self, aoi):
@@ -161,6 +171,7 @@ class Sentinel1SlcStack(SlcStack):
         此函数根据 AoI “裁剪” S1 的数据集。注意，这个“裁剪”不是一个真实的“裁剪”，只是算出包含
         AoI 所需要的 bursts 是多少，需要哪几个 subswaths。在配准的过程中才会触发真正的“裁剪”
         的过程，选择相应的 bursts 进行裁剪后配准。
+        此时的裁剪只是裁剪，判断逻辑放到 cli 中
 
         Parameters
         ----------
@@ -171,17 +182,9 @@ class Sentinel1SlcStack(SlcStack):
         # implement crop logic on each date/acquisition
         completed_item = 0
         for acquisition, _ in self.slc.items():
-            if not aoi: # 当不需要 crop 时，将 slc 的 source 中的数据赋值给所有的 IW。
-                self.slc[acquisition].IW1["source"] = self.slc[acquisition].source
-                self.slc[acquisition].IW2["source"] = self.slc[acquisition].source
-                self.slc[acquisition].IW3["source"] = self.slc[acquisition].source
-            else:
-                self.slc[acquisition].crop(aoi=aoi)
-                completed_item += 1
-            logger.info(
-                f"CROP PROCESS: {completed_item}/{len(self.slc.items())} completed."
-            )
-
+            self.slc[acquisition].crop(aoi=aoi)
+            completed_item += 1
+            logger.info(f"CROP PROCESS: {completed_item}/{len(self.slc.items())} completed.")
         return self
 
     def coregister(
@@ -190,7 +193,7 @@ class Sentinel1SlcStack(SlcStack):
         output: str,
         dry_run: bool = True,
         prune: bool = True,
-        sophia: bool = False,
+        radarcode_dem: bool = False,
         update: bool = False,
     ) -> None:
         # check if master is in the slc dict
@@ -208,9 +211,7 @@ class Sentinel1SlcStack(SlcStack):
                 output_dir=output, dry_run=dry_run, prune=prune
             )
             completed_item += 1
-            logger.info(
-                f"LOAD PROGRESS: {completed_item}/{len(self.slc.items())-1} completed."
-            )
+            logger.info(f"LOAD PROGRESS: {completed_item}/{len(self.slc.items())-1} completed.")
 
         """
         radarcode dem: for radarcoding we can coregister master with master.
@@ -218,10 +219,8 @@ class Sentinel1SlcStack(SlcStack):
         when doing radarcoding of dem.
         """
         logger.info("RADARCODING DEM: Start.")
-        if sophia: # 在 sophia 的情况下才需要对 DEM 地理编码，在不需 sophia 时无需再对自身做一次配准。
-            Sentinel1SlcPair(
-                master=self.slc[master], slave=self.slc[master]  # radarcode DEM
-            ).coregister(
+        if radarcode_dem:  # 在 sophia 的情况下才需要对 DEM 地理编码，在不需 sophia 时无需再对自身做一次配准。
+            Sentinel1SlcPair(master=self.slc[master], slave=self.slc[master]).coregister(  # radarcode DEM
                 output_dir=output,
                 dry_run=dry_run,
                 prune=prune,
@@ -230,3 +229,19 @@ class Sentinel1SlcStack(SlcStack):
 
             logger.info("RADARCODING DEM: completed.")
             logger.info(f"Processing complete! Log is saved to {LOG_FNAME}")
+
+
+if __name__ == "__main__":
+    from datetime import datetime
+
+    loaded_stack = Sentinel1SlcStack(sourcedir="/home/jerry/ceshi").load()
+    aoi = "POLYGON((118.4939 36.8231,117.446 35.7963,118.7813 \
+            34.2381,120.5686 35.9625,119.8731 36.4895,118.4939 36.8231))"
+    # if aoi:
+    #     loaded_stack = loaded_stack.crop(aoi=aoi)
+    loaded_stack.coregister(
+        output="/home/jerry/ceshi",
+        master="20210810",
+        dry_run=True,
+        prune=False,
+    )

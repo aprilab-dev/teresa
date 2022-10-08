@@ -1,25 +1,23 @@
-from __future__ import annotations
-
 import os
+
 from num2words import num2words
 
 CUR_DIR = os.path.abspath(os.path.dirname(__file__))
 
-class GptGraph():
 
+class GptGraph:
     @staticmethod
     def radarcode_dem():
-        """ graph for radarcode dem using the interferogram module.
-        """
+        """graph for radarcode dem using the interferogram module."""
         graph = "graphs/radarcode_dem.xml"
         return os.path.join(CUR_DIR, graph)
 
 
 class GptGraphS1Coreg(GptGraph):
     @staticmethod
-    def generate(slc_pair):
-        mtype = "single" if len(slc_pair.master.source) == 1 else "multiple"
-        stype = "single" if len(slc_pair.slave.source) == 1 else "multiple"
+    def generate(mfile: tuple, sfile: tuple):
+        mtype = "single" if len(mfile) == 1 else "multiple"
+        stype = "single" if len(sfile) == 1 else "multiple"
         graph = f"graphs/coregister_subswath_{mtype}_master_{stype}_slave.xml"
         return os.path.join(CUR_DIR, graph)
 
@@ -27,8 +25,7 @@ class GptGraphS1Coreg(GptGraph):
 class GptGraphS1Merge(GptGraph):
     @staticmethod
     def generate(subswaths: tuple):
-        nsubswaths = num2words(len(subswaths))   # only support merging all three subswath.
-        graph = f"graphs/merge_{nsubswaths}_subswaths.xml"
+        graph = f"graphs/merge_{num2words(len(subswaths))}_subswaths.xml"
         return os.path.join(CUR_DIR, graph)
 
 

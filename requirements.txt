@@ -1,14 +1,11 @@
-psutil
-pypinyin
-requests
 click
 click-log
 coloredlogs
-numpy
 geojson
-shapely
-num2words
-# vine==0.0.23
-shapely
 lxml
-# tqhub-sqadk-data==0.1.26
+numpy
+num2words
+psutil
+pypinyin
+requests
+shapely

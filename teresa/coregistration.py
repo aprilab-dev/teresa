@@ -31,7 +31,6 @@ class CoregistrationError(RuntimeError):
 
 
 class Coregistration(abc.ABC):
-
     def __init__(
         self,
         slc_pair: stack.SlcPair,
@@ -39,16 +38,15 @@ class Coregistration(abc.ABC):
         polarization: str = "vv",
         dry_run: bool = True,
         prune: bool = True,
-        sophia: bool = False, # 增加一个 sophia 选项
         radarcode_dem: bool = False,  # by default don't radarcode dem
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
         # concrete implementation of init function
+        self.processed_subswaths = ()
         self.slc_pair = slc_pair
         self.output_dir = output_dir
         self.polarization = polarization
         self.dry_run = dry_run
-        self.sophia = sophia
         self.prune = prune
         self.radarcode_dem = radarcode_dem
         self._processor = coreg_processor  # interface
@@ -81,11 +79,12 @@ class Coregistration(abc.ABC):
             os.makedirs(os.path.join(output_path, "merged") + ".data", exist_ok=True)
             open(os.path.join(output_path, "merged") + ".dim", "w").close()
             open(os.path.join(output_path, "merged.data", "elevation.hdr"), "w").close()
-            open(os.path.join(output_path, "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr"), "w").close()
+            open(
+                os.path.join(output_path, "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr"), "w"
+            ).close()
 
 
 class Sentinel1Coregistration(Coregistration):
-
     def coregister(self):
         self._prepare()
         self._coregister()
@@ -100,21 +99,24 @@ class Sentinel1Coregistration(Coregistration):
     def _coregister(self):
         # the lofic for swath coregistration.
         # The concrete implementation is actually in _subswath_coregister.
-        self.subswaths = ()
         for nsubswath in ("IW1", "IW2", "IW3"):  # starts from 1
             self._coregister_subswath(nsubswath)
 
-    def _coregister_subswath(self, nsubswath: int):
+    def _coregister_subswath(self, nsubswath: str):
         """TODO: add description."""
 
-        graph = graphs.GptGraphS1Coreg.generate(self.slc_pair)
-
         # format gpt input
-        master_files = ",".join([source for source in getattr(self.slc_pair.master, nsubswath)["source"]]) # 获取这个 subswath 所需的文件，而不是以前所有的文件。
+        master_files = ",".join(
+            [source for source in getattr(self.slc_pair.master, nsubswath)["source"]]
+        )  # 获取该 subswath 中覆盖 aoi 的文件（或多个文件)
         slave_files = ",".join([source for source in getattr(self.slc_pair.slave, nsubswath)["source"]])
-        if not master_files: # 获取每个 subswath 对应的 source 文件，若为空，则无需处理此 subswath
-            return 
-        self.subswaths += (nsubswath,) # 将需要处理的 subswath 编号添加到一个元组中，此元组的作用有两个，一是判断需要 merge 的条带数选择对应的 xml 文件，另一个是 link_master 中伪造文件。
+
+        if not master_files:  # 获取每个 subswath 对应的 source 文件，若为空，则无需处理此 subswath
+            return self
+        graph = graphs.GptGraphS1Coreg.generate(mfile=master_files, sfile=slave_files)
+        self.processed_subswaths += (
+            nsubswath,
+        )  # 将需要处理的 subswath 编号添加到一个元组中，此元组的作用有两个，一是判断需要 merge 的条带数选择对应的 xml 文件，另一个是 link_master 中伪造文件。
         output_path = os.path.join(
             self.output_dir,
             COREG_DIR,
@@ -143,10 +145,10 @@ class Sentinel1Coregistration(Coregistration):
             output_path=output_path,
             dry_run=self.dry_run,
             # add structure here
-            master_first_burst = master_bursts_indices["first_burst_index"],
-            master_last_burst = master_bursts_indices["last_burst_index"],
-            slave_first_burst = slave_bursts_indices["first_burst_index"],
-            slave_last_burst = slave_bursts_indices["last_burst_index"],
+            master_first_burst=master_bursts_indices["first_burst_index"],
+            master_last_burst=master_bursts_indices["last_burst_index"],
+            slave_first_burst=slave_bursts_indices["first_burst_index"],
+            slave_last_burst=slave_bursts_indices["last_burst_index"],
         )
 
         self.slc_pair.slave.append(destination=output_path)
@@ -163,7 +165,7 @@ class Sentinel1Coregistration(Coregistration):
 
     def _merge(self):
 
-        graph = graphs.GptGraphS1Merge.generate(self.subswaths)
+        graph = graphs.GptGraphS1Merge.generate(self.processed_subswaths)
 
         output_path = os.path.join(
             self.output_dir,
@@ -222,8 +224,8 @@ class Sentinel1Coregistration(Coregistration):
             # 当只有 subwath 的数量等于 1 时，merged.data 里面的数据是 i_vv_mst_20210101.img，否则是 i_IW1_vv_mst_20210101.img 形式
             master_filename = (
                 f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
-                if len(self.subswaths) > 1
-                else f"{channel}_IW{self.subswaths[0]}_{pol}_mst_{master_datestr}.{suffix}"
+                if len(self.processed_subswaths) > 1
+                else f"{channel}_IW{self.processed_subswaths[0]}_{pol}_mst_{master_datestr}.{suffix}"
             )
 
             dst_file = os.path.join(dst_dir, "merged.data", master_filename)
@@ -310,4 +312,3 @@ class TSXCoregistration(Coregistration):
 
     def coregistration(self):
         pass
-
