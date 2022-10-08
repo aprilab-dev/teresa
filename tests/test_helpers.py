@@ -45,9 +45,3 @@ def test_find_bursts(polygons):
         assert slc_img.IW1["first_burst_index"] == 1
         assert slc_img.IW3["last_burst_index"] == 999
         assert len(slc_img.IW1["source"]) == 2
-
-
-test_find_bursts(
-    "POLYGON((118.4939 36.8231,117.446 35.7963,118.7813 \
-            34.2381,120.5686 35.9625,119.8731 36.4895,118.4939 36.8231))"
-)

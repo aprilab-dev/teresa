@@ -1,16 +1,17 @@
-from __future__ import annotations
-
-import os
-import re
 import abc
 import json
-import shutil
 import logging
+import os
+import re
+import shutil
+
+from datetime import datetime
+from itertools import product
+
 from . import graphs
 from . import processor
 from .log import LOG_FNAME
-from datetime import datetime
-from itertools import product
+
 
 # https://stackoverflow.com/questions/46641078/how-to-avoid-circular-dependency-caused-by-type-hinting-of-pointer-attributes-in
 import typing
@@ -33,7 +34,7 @@ class CoregistrationError(RuntimeError):
 class Coregistration(abc.ABC):
     def __init__(
         self,
-        slc_pair: stack.SlcPair,
+        slc_pair,  # stack 会调用 coregistration，如果此时增加 typehint，会导致循环调用
         output_dir: str,
         polarization: str = "vv",
         dry_run: bool = True,

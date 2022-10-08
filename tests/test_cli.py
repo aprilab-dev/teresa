@@ -1,6 +1,8 @@
 import os
+
 import pytest
 from click.testing import CliRunner
+
 from teresa.cli import main
 from teresa.log import LOG_FNAME
 from teresa.coregistration import COREG_DIR, format_date

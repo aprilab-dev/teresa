@@ -1,4 +1,5 @@
 import abc
+import imp
 import logging
 import os
 import re
@@ -235,13 +236,12 @@ if __name__ == "__main__":
     from datetime import datetime
 
     loaded_stack = Sentinel1SlcStack(sourcedir="/home/jerry/ceshi").load()
-    aoi = "POLYGON((118.4939 36.8231,117.446 35.7963,118.7813 \
-            34.2381,120.5686 35.9625,119.8731 36.4895,118.4939 36.8231))"
-    # if aoi:
-    #     loaded_stack = loaded_stack.crop(aoi=aoi)
+    aoi = "POLYGON((119.1082 34.7146,118.4832 34.071,119.4352 33.5379,119.641 34.21,119.1082 34.7146))"
+    if aoi:
+        loaded_stack = loaded_stack.crop(aoi=aoi)  # 此处就不做调整了，因为此时的 aoi 一定存在。
     loaded_stack.coregister(
         output="/home/jerry/ceshi",
         master="20210810",
-        dry_run=True,
-        prune=False,
+        dry_run=False,
+        prune=True,
     )

@@ -54,12 +54,8 @@ def main():
     help="The master image in [yyyymmdd] format for coregistering the stack.",
 )
 @click_log.simple_verbosity_option(logger=logger)
-@click.option(
-    "--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run."
-)
-@click.option(
-    "--prune/--no-prune", default=True, help="清除运行中的荣誉数据，如果使用 StaMPS 处理，请设置为 False"
-)
+@click.option("--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run.")
+@click.option("--prune/--no-prune", default=True, help="清除运行中的荣誉数据，如果使用 StaMPS 处理，请设置为 False")
 @click.option("--aoi", default=None, help="请输入 AOI 文件，缺省时则全景处理")  # 增加一个输入参数
 def coregister(source_dir, destination, master, dry_run: bool, prune: bool, aoi: bool):
     """
@@ -69,7 +65,7 @@ def coregister(source_dir, destination, master, dry_run: bool, prune: bool, aoi:
     # run coregistration
     loaded_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
     if aoi:
-        loaded_stack = loaded_stack.crop(aoi=aoi)
+        loaded_stack = loaded_stack.crop(aoi=aoi)  # 此处就不做调整了，因为此时的 aoi 一定存在。
     loaded_stack.coregister(
         output=destination,
         master=datetime.strftime(master, "%Y%m%d"),
