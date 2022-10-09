@@ -197,6 +197,7 @@ class Sentinel1SlcStack(SlcStack):
         output: str,
         dry_run: bool = True,
         prune: bool = True,
+        deep_prune: bool = False,
         radarcode_dem: bool = False,
         update: bool = False,
     ) -> None:
@@ -212,7 +213,7 @@ class Sentinel1SlcStack(SlcStack):
             if slave == master:
                 continue  # does not make sense to coregister master to master
             Sentinel1SlcPair(master=self.slc[master], slave=self.slc[slave]).coregister(
-                output_dir=output, dry_run=dry_run, prune=prune
+                output_dir=output, dry_run=dry_run, prune=prune, deep_prune=deep_prune
             )
             completed_item += 1
             logger.info(f"LOAD PROGRESS: {completed_item}/{len(self.slc.items())-1} completed.")
