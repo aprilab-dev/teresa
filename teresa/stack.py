@@ -1,5 +1,4 @@
 import abc
-import imp
 import logging
 import os
 import re
@@ -154,7 +153,9 @@ class Sentinel1SlcStack(SlcStack):
             # https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions
             if re.search(r"S1[A|B]_IW_SLC", file):
                 # get the date from the filename
-                acquisition = re.search(r"S1[A|B]_IW_SLC_.+(20\d{6})T\d{6}_20\d{6}T\d{6}_.+", file).group(
+                acquisition = re.search(
+                    r"S1[A|B]_IW_SLC_.+(20\d{6})T\d{6}_20\d{6}T\d{6}_.+", file
+                ).group(
                     1
                 )  # type: ignore
                 # check if key exist
@@ -163,7 +164,9 @@ class Sentinel1SlcStack(SlcStack):
                     self.slc[acquisition].sourcedir = self.sourcedir
                 for subswath in ("IW1", "IW2", "IW3"):
                     subswath = getattr(self.slc[acquisition], subswath)
-                    subswath["source"] += (os.path.join(self.sourcedir, file),)  # 将 SlcImage 的三个 IW 先初始化。
+                    subswath["source"] += (
+                        os.path.join(self.sourcedir, file),
+                    )  # 将 SlcImage 的三个 IW 先初始化。
         return self
 
     def crop(self, aoi):
@@ -221,7 +224,9 @@ class Sentinel1SlcStack(SlcStack):
         """
         logger.info("RADARCODING DEM: Start.")
         if radarcode_dem:  # 在 sophia 的情况下才需要对 DEM 地理编码，在不需 sophia 时无需再对自身做一次配准。
-            Sentinel1SlcPair(master=self.slc[master], slave=self.slc[master]).coregister(  # radarcode DEM
+            Sentinel1SlcPair(
+                master=self.slc[master], slave=self.slc[master]
+            ).coregister(  # radarcode DEM
                 output_dir=output,
                 dry_run=dry_run,
                 prune=prune,
