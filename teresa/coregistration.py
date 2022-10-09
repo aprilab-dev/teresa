@@ -39,6 +39,7 @@ class Coregistration(abc.ABC):
         polarization: str = "vv",
         dry_run: bool = True,
         prune: bool = True,
+        deep_prune: bool = False,
         radarcode_dem: bool = False,  # by default don't radarcode dem
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
@@ -49,6 +50,7 @@ class Coregistration(abc.ABC):
         self.polarization = polarization
         self.dry_run = dry_run
         self.prune = prune
+        self.deep_prune = deep_prune
         self.radarcode_dem = radarcode_dem
         self._processor = coreg_processor  # interface
 
@@ -234,11 +236,11 @@ class Sentinel1Coregistration(Coregistration):
             # copy if not exists
             if os.path.exists(dst_file):
                 logger.debug(f"{dst_file} already exists.")
-                if suffix == "img" and self.prune:  # remove img file if exists
+                if suffix == "img" and self.deep_prune:  # remove img file if exists
                     os.remove(src_file)
             else:
                 logger.debug(f"Linking {src_file} to {dst_file}.")
-                if self.prune:  # 这一步 prune 个人理解去掉 shutil.move
+                if self.deep_prune:  # 这一步 prune 个人理解去掉 shutil.move
                     shutil.move(src_file, dst_file)
                 else:
                     shutil.copy2(src_file, dst_file)
