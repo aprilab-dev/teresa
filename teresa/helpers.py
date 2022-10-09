@@ -2,6 +2,7 @@ import os
 import re
 import glob
 import shapely.wkt
+import sys
 
 import geojson
 import requests
@@ -77,11 +78,8 @@ class FindBursts:
         """
         self.slc_image = slc_image
         self.meta_sourcedir = os.path.join(slc_image.sourcedir, slc_image.date)
-        self._extract_meta()
-        if os.path.isfile(aoi):  # 发现实际使用时直接使用 ASF 的 Polygon 字符串更方便些，增加一个数据类型接口。
-            self.aoi = self._geojson2polygon(aoi)
-        else:
-            self.aoi = shapely.wkt.loads(aoi)
+        self._extract_meta()  # 将 SlcImage 中三个条带对应的文件解压
+        self.aoi = self._other2polygon(aoi)  # 将 aoi 转为 polygon，可以是 polygon 字符串或 geojson 文件
 
     def _extract_meta(self):
         """提取输入对象中 source 属性下的所有 zip 文件的源文件，存放在工作目录下对应日期的目录下面。"""
@@ -92,6 +90,7 @@ class FindBursts:
                 zip_file = zipfile.ZipFile(fzip)
             except:
                 logger.error(f"{fzip} wrong")
+                sys.exit()  # 解压错误就中止程序
             for fxml in zip_file.namelist():
                 re_matched = re.match(r"(.*)/annotation/(s1.*vv.*)", fxml)
                 if not re_matched:
@@ -99,8 +98,13 @@ class FindBursts:
                 zip_file.extract(fxml, self.meta_sourcedir)
 
         # 将该 Sentinel1SlcImage 对象 source 属性中的所有 zip 文件的 xml 文件提取。
-        for fzip in self.slc_image.IW1["source"]:
-            _unzip(fzip)
+        unzipped = ()
+        for subswath in ("IW1", "IW2", "IW3"):
+            fzips = getattr(self.slc_image, subswath)["source"]
+            for fzip in fzips:
+                if fzip not in unzipped:
+                    _unzip(fzip)
+                    unzipped += (fzip,)
 
     def _read_xml(self, fxml: str) -> dict:
         """读取一个 xml 文件中所需的信息，存放到 self.xml_info 中，points_info 是一个 np.array 格式的数组，
@@ -125,9 +129,13 @@ class FindBursts:
             "burst_number": burst_number,
         }
 
-    def _geojson2polygon(self, geojson_file: str) -> Polygon:
+    def _other2polygon(self, aoi_or_geojson: str) -> Polygon:
         """将 geojson 格式的文件转为 Polygon"""
-        with open(geojson_file) as f:
+        if not os.path.isfile(aoi_or_geojson):  # 发现实际使用时直接使用 ASF 的 Polygon 字符串更方便些，增加一个数据类型接口。
+            boundary = shapely.wkt.loads(aoi_or_geojson)
+            return boundary
+
+        with open(aoi_or_geojson) as f:
             geojson_context = geojson.load(f)
         try:  # 不同方式建立的 geojson 文件格式可能会不同
             boundary = shape(geojson_context["features"][0]["geometry"])

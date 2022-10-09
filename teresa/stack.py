@@ -233,8 +233,6 @@ class Sentinel1SlcStack(SlcStack):
 
 
 if __name__ == "__main__":
-    from datetime import datetime
-
     loaded_stack = Sentinel1SlcStack(sourcedir="/home/jerry/ceshi").load()
     aoi = "POLYGON((119.1082 34.7146,118.4832 34.071,119.4352 33.5379,119.641 34.21,119.1082 34.7146))"
     if aoi:

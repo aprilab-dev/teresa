@@ -114,7 +114,7 @@ class Sentinel1Coregistration(Coregistration):
 
         if not master_files:  # 获取每个 subswath 对应的 source 文件，若为空，则无需处理此 subswath
             return self
-        graph = graphs.GptGraphS1Coreg.generate(mfile=master_files, sfile=slave_files)
+        graph = graphs.GptGraphS1Coreg.generate(mfile=master_files.split(","), sfile=slave_files.split(","))
         self.processed_subswaths += (
             nsubswath,
         )  # 将需要处理的 subswath 编号添加到一个元组中，此元组的作用有两个，一是判断需要 merge 的条带数选择对应的 xml 文件，另一个是 link_master 中伪造文件。
@@ -238,7 +238,7 @@ class Sentinel1Coregistration(Coregistration):
                     os.remove(src_file)
             else:
                 logger.debug(f"Linking {src_file} to {dst_file}.")
-                if self.prune:
+                if self.prune:  # 这一步 prune 个人理解去掉 shutil.move
                     shutil.move(src_file, dst_file)
                 else:
                     shutil.copy2(src_file, dst_file)
