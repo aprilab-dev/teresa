@@ -5,7 +5,6 @@ import re
 import shutil
 
 import teresa.coregistration as coreg
-from teresa.helpers import FindBursts
 from teresa.log import LOG_FNAME
 
 logger = logging.getLogger("sLogger")
@@ -197,7 +196,6 @@ class Sentinel1SlcStack(SlcStack):
         output: str,
         dry_run: bool = True,
         prune: bool = True,
-        deep_prune: bool = False,
         radarcode_dem: bool = False,
         update: bool = False,
     ) -> None:
@@ -213,7 +211,9 @@ class Sentinel1SlcStack(SlcStack):
             if slave == master:
                 continue  # does not make sense to coregister master to master
             Sentinel1SlcPair(master=self.slc[master], slave=self.slc[slave]).coregister(
-                output_dir=output, dry_run=dry_run, prune=prune, deep_prune=deep_prune
+                output_dir=output,
+                dry_run=dry_run,
+                prune=prune,
             )
             completed_item += 1
             logger.info(f"LOAD PROGRESS: {completed_item}/{len(self.slc.items())-1} completed.")
@@ -236,16 +236,3 @@ class Sentinel1SlcStack(SlcStack):
 
             logger.info("RADARCODING DEM: completed.")
             logger.info(f"Processing complete! Log is saved to {LOG_FNAME}")
-
-
-if __name__ == "__main__":
-    loaded_stack = Sentinel1SlcStack(sourcedir="/home/jerry/ceshi").load()
-    aoi = "POLYGON((119.1082 34.7146,118.4832 34.071,119.4352 33.5379,119.641 34.21,119.1082 34.7146))"
-    if aoi:
-        loaded_stack = loaded_stack.crop(aoi=aoi)  # 此处就不做调整了，因为此时的 aoi 一定存在。
-    loaded_stack.coregister(
-        output="/home/jerry/ceshi",
-        master="20210810",
-        dry_run=False,
-        prune=True,
-    )

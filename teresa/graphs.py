@@ -25,7 +25,7 @@ class GptGraphS1Coreg(GptGraph):
 class GptGraphS1Merge(GptGraph):
     @staticmethod
     def generate(subswaths: tuple):
-        graph = f"graphs/merge_{num2words(len(subswaths))}_subswaths.xml"
+        graph = f"graphs/merge_{num2words(len(subswaths))}_subswaths.xml"  # 将数字转成文字
         return os.path.join(CUR_DIR, graph)
 
 

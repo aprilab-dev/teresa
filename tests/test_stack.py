@@ -1,6 +1,6 @@
 import os
-from tempfile import tempdir
 import pytest
+
 from teresa import stack, log
 from teresa.coregistration import COREG_DIR, format_date
 from tests import conftest
@@ -39,12 +39,11 @@ def test_sentinel1_slcstack_bursts_indices(tmpdir, mocked):
 
 @pytest.mark.parametrize("mocked", mocked_s1_slcstack)
 @pytest.mark.parametrize("prune", [True, False])
-@pytest.mark.parametrize("deep_prune", [True, False])
-def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune, deep_prune):
+def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
     source_dir, slc_len = mocked(tmpdir)
     tmp_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
     tmp_stack.coregister(
-        master="20210507", output=source_dir, prune=prune, radarcode_dem=True, deep_prune=deep_prune
+        master="20210507", output=source_dir, prune=prune, radarcode_dem=True
     )  # 添加 radarcode_dem 为 True
     # check if output is in the log
     assert os.path.join(source_dir, COREG_DIR) in open(log.LOG_FNAME).read()
@@ -69,7 +68,7 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune, deep_prune):
 
     # assert file existence if NOT prune
     master_datestr = format_date("20210507")
-    if not prune and not deep_prune:
+    if not prune:
         for channel, suffix in [(c, s) for c in ("i", "q") for s in ("img", "hdr")]:
             for slave, _ in tmp_stack.slc.items():
                 master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
@@ -78,14 +77,15 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune, deep_prune):
                 )
 
     # assert file NOT existence if prune
-    if prune and deep_prune:
+    if prune:
         for channel, suffix in [(c, s) for c in ("i", "q") for s in ("img",)]:
             for slave, _ in tmp_stack.slc.items():
                 if slave == "20210507":
                     continue
                 master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
                 assert not os.path.isfile(
-                    os.path.join(source_dir, COREG_DIR, slave, "merged.data", master_filename)
+                    # os.path.join(source_dir, COREG_DIR, slave, "merged.data", master_filename)
+                    os.path.join(source_dir, COREG_DIR, slave, "IW1.data")  # prune 功能改成清除 IW1.data
                 )
         # check DEM existence
         assert not os.path.isfile(

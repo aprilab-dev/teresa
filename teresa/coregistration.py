@@ -34,12 +34,11 @@ class CoregistrationError(RuntimeError):
 class Coregistration(abc.ABC):
     def __init__(
         self,
-        slc_pair,  # stack 会调用 coregistration，如果此时增加 typehint，会导致循环调用
+        slc_pair,  # TODO stack 会调用 coregistration，如果此时增加 typehint，会导致循环调用
         output_dir: str,
         polarization: str = "vv",
         dry_run: bool = True,
         prune: bool = True,
-        deep_prune: bool = False,
         radarcode_dem: bool = False,  # by default don't radarcode dem
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
@@ -50,7 +49,6 @@ class Coregistration(abc.ABC):
         self.polarization = polarization
         self.dry_run = dry_run
         self.prune = prune
-        self.deep_prune = deep_prune
         self.radarcode_dem = radarcode_dem
         self._processor = coreg_processor  # interface
 
@@ -65,7 +63,9 @@ class Coregistration(abc.ABC):
         function into the parent class.
         """
 
-        input_pair = os.path.join(self.output_dir, COREG_DIR, self.slc_pair.master.date, "merged.dim")
+        input_pair = os.path.join(
+            self.output_dir, COREG_DIR, self.slc_pair.master.date, "merged.dim"
+        )
         output_path = os.path.join(self.output_dir, COREG_DIR, "DEM")
 
         # Execute the actual coregistration
@@ -83,7 +83,10 @@ class Coregistration(abc.ABC):
             open(os.path.join(output_path, "merged") + ".dim", "w").close()
             open(os.path.join(output_path, "merged.data", "elevation.hdr"), "w").close()
             open(
-                os.path.join(output_path, "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr"), "w"
+                os.path.join(
+                    output_path, "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr"
+                ),
+                "w",
             ).close()
 
 
@@ -112,11 +115,15 @@ class Sentinel1Coregistration(Coregistration):
         master_files = ",".join(
             [source for source in getattr(self.slc_pair.master, nsubswath)["source"]]
         )  # 获取该 subswath 中覆盖 aoi 的文件（或多个文件)
-        slave_files = ",".join([source for source in getattr(self.slc_pair.slave, nsubswath)["source"]])
+        slave_files = ",".join(
+            [source for source in getattr(self.slc_pair.slave, nsubswath)["source"]]
+        )
 
         if not master_files:  # 获取每个 subswath 对应的 source 文件，若为空，则无需处理此 subswath
             return self
-        graph = graphs.GptGraphS1Coreg.generate(mfile=master_files.split(","), sfile=slave_files.split(","))
+        graph = graphs.GptGraphS1Coreg.generate(
+            mfile=master_files.split(","), sfile=slave_files.split(",")
+        )
         self.processed_subswaths += (
             nsubswath,
         )  # 将需要处理的 subswath 编号添加到一个元组中，此元组的作用有两个，一是判断需要 merge 的条带数选择对应的 xml 文件，另一个是 link_master 中伪造文件。
@@ -156,7 +163,9 @@ class Sentinel1Coregistration(Coregistration):
 
         self.slc_pair.slave.append(destination=output_path)
         if not self.dry_run:
-            logger.info(f"COREGISTERING slave {self.slc_pair.slave.date} swath IW{nsubswath} completed.")
+            logger.info(
+                f"COREGISTERING slave {self.slc_pair.slave.date} swath IW{nsubswath} completed."
+            )
 
         if self.dry_run:
             logger.debug("DRY RUN: Creating dummy folders/files for testing purpose.")
@@ -222,7 +231,9 @@ class Sentinel1Coregistration(Coregistration):
 
         pol = self.polarization.upper()
         master_datestr = format_date(self.slc_pair.master.date)
-        for channel, suffix in product(("i", "q"), ("img", "hdr")):  # in-phase & quadrature channels
+        for channel, suffix in product(
+            ("i", "q"), ("img", "hdr")
+        ):  # in-phase & quadrature channels
             # master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
             # 当只有 subwath 的数量等于 1 时，merged.data 里面的数据是 i_vv_mst_20210101.img，否则是 i_IW1_vv_mst_20210101.img 形式
             master_filename = (
@@ -236,14 +247,14 @@ class Sentinel1Coregistration(Coregistration):
             # copy if not exists
             if os.path.exists(dst_file):
                 logger.debug(f"{dst_file} already exists.")
-                if suffix == "img" and self.deep_prune:  # remove img file if exists
-                    os.remove(src_file)
+                # if suffix == "img" and self.prune:  # remove img file if exists
+                #     os.remove(src_file)
             else:
                 logger.debug(f"Linking {src_file} to {dst_file}.")
-                if self.deep_prune:  # 这一步 prune 个人理解去掉 shutil.move
-                    shutil.move(src_file, dst_file)
-                else:
-                    shutil.copy2(src_file, dst_file)
+                # if self.prune:  # 这一步 prune 个人理解去掉 shutil.move
+                # shutil.move(src_file, dst_file)
+                # else:
+                shutil.copy2(src_file, dst_file)
 
         master_symlink = os.path.join(self.output_dir, COREG_DIR, "master")
         if not self.dry_run:
