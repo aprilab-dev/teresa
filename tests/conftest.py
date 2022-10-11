@@ -1,3 +1,8 @@
+import os
+import shutil
+from teresa.stack import Sentinel1SlcImage
+
+
 def create_multiple_masters_multiple_slaves(tmpdir):
     test_slc_dir = tmpdir.mkdir("multiple_masters_multiple_slaves")
     slcs = [

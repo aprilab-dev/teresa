@@ -1,4 +1,5 @@
 import pytest
+
 from teresa import helpers
 
 test_data_latlon_to_city = [
@@ -13,7 +14,7 @@ def test_latlon_to_city(input, desired):
     assert desired == helpers.latlon_to_city(*input)
 
 
-test_error_latlon_to_city = [((91., 118.0)), ((24.2, 181.))]
+test_error_latlon_to_city = [((91.0, 118.0)), ((24.2, 181.0))]
 
 
 @pytest.mark.parametrize("input", test_error_latlon_to_city)

@@ -1,7 +1,18 @@
-from pypinyin import lazy_pinyin as pinyin
+import os
+import re
+import glob
+import shapely.wkt
+import sys
+
+import geojson
 import requests
 import logging
-from . import cli
+import zipfile
+import numpy as np
+
+from lxml import etree
+from shapely.geometry import shape, Polygon
+from pypinyin import lazy_pinyin as pinyin
 
 logger = logging.getLogger("sLogger")
 
@@ -20,9 +31,7 @@ def latlon_to_city(lat: float, lon: float) -> str:
     is in China, return "cn_xxxxxx" where "xxxxxx" is the city name.
     """
 
-    url = "https://apis.map.qq.com/ws/geocoder/v1/?location={},{}&key={}".format(
-        lat, lon, API_KEY
-    )
+    url = "https://apis.map.qq.com/ws/geocoder/v1/?location={},{}&key={}".format(lat, lon, API_KEY)
 
     try:
         content = requests.get(url, timeout=60).json()

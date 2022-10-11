@@ -1,16 +1,17 @@
-from __future__ import annotations
-
-import os
-import re
 import abc
 import json
-import shutil
 import logging
+import os
+import re
+import shutil
+
+from datetime import datetime
+from itertools import product
+
 from . import graphs
 from . import processor
 from .log import LOG_FNAME
-from datetime import datetime
-from itertools import product
+
 
 # https://stackoverflow.com/questions/46641078/how-to-avoid-circular-dependency-caused-by-type-hinting-of-pointer-attributes-in
 import typing
@@ -31,10 +32,9 @@ class CoregistrationError(RuntimeError):
 
 
 class Coregistration(abc.ABC):
-
     def __init__(
         self,
-        slc_pair: stack.SlcPair,
+        slc_pair,  # TODO stack 会调用 coregistration，如果此时增加 typehint，会导致循环调用
         output_dir: str,
         polarization: str = "vv",
         dry_run: bool = True,
@@ -43,6 +43,7 @@ class Coregistration(abc.ABC):
         coreg_processor: processor.GptProcessor = processor.GptProcessor(),
     ):
         # concrete implementation of init function
+        self.processed_subswaths = ()
         self.slc_pair = slc_pair
         self.output_dir = output_dir
         self.polarization = polarization
@@ -62,7 +63,9 @@ class Coregistration(abc.ABC):
         function into the parent class.
         """
 
-        input_pair = os.path.join(self.output_dir, COREG_DIR, self.slc_pair.master.date, "merged.dim")
+        input_pair = os.path.join(
+            self.output_dir, COREG_DIR, self.slc_pair.master.date, "merged.dim"
+        )
         output_path = os.path.join(self.output_dir, COREG_DIR, "DEM")
 
         # Execute the actual coregistration
@@ -79,11 +82,15 @@ class Coregistration(abc.ABC):
             os.makedirs(os.path.join(output_path, "merged") + ".data", exist_ok=True)
             open(os.path.join(output_path, "merged") + ".dim", "w").close()
             open(os.path.join(output_path, "merged.data", "elevation.hdr"), "w").close()
-            open(os.path.join(output_path, "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr"), "w").close()
+            open(
+                os.path.join(
+                    output_path, "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr"
+                ),
+                "w",
+            ).close()
 
 
 class Sentinel1Coregistration(Coregistration):
-
     def coregister(self):
         self._prepare()
         self._coregister()
@@ -98,54 +105,67 @@ class Sentinel1Coregistration(Coregistration):
     def _coregister(self):
         # the lofic for swath coregistration.
         # The concrete implementation is actually in _subswath_coregister.
-        for nsubswath in range(1, 4):  # starts from 1
+        for nsubswath in ("IW1", "IW2", "IW3"):  # starts from 1
             self._coregister_subswath(nsubswath)
 
-    def _coregister_subswath(self, nsubswath: int):
+    def _coregister_subswath(self, nsubswath: str):
         """TODO: add description."""
 
-        graph = graphs.GptGraphS1Coreg.generate(self.slc_pair)
-
         # format gpt input
-        master_files = ",".join([source for source in self.slc_pair.master.source])
-        slave_files = ",".join([source for source in self.slc_pair.slave.source])
+        master_files = ",".join(
+            [source for source in getattr(self.slc_pair.master, nsubswath)["source"]]
+        )  # 获取该 subswath 中覆盖 aoi 的文件（或多个文件)
+        slave_files = ",".join(
+            [source for source in getattr(self.slc_pair.slave, nsubswath)["source"]]
+        )
+
+        if not master_files:  # 获取每个 subswath 对应的 source 文件，若为空，则无需处理此 subswath
+            return self
+        graph = graphs.GptGraphS1Coreg.generate(
+            mfile=master_files.split(","), sfile=slave_files.split(",")
+        )
+        self.processed_subswaths += (
+            nsubswath,
+        )  # 将需要处理的 subswath 编号添加到一个元组中，此元组的作用有两个，一是判断需要 merge 的条带数选择对应的 xml 文件，另一个是 link_master 中伪造文件。
         output_path = os.path.join(
             self.output_dir,
             COREG_DIR,
             self.slc_pair.slave.date,  # sort in dates
-            f"iw{nsubswath}",
+            nsubswath,
         )
 
         if not self.dry_run:
             logger.info(  # logging before exeuution
-                "COREGISTERING master %s and slave %s for swath IW%s:",
+                "COREGISTERING master %s and slave %s for swath %s:",
                 self.slc_pair.master.date,
                 self.slc_pair.slave.date,
                 nsubswath,
             )
 
-        master_bursts_indices = getattr(self.slc_pair.master, f"IW{nsubswath}")
-        slave_bursts_indices = getattr(self.slc_pair.slave, f"IW{nsubswath}")
+        master_bursts_indices = getattr(self.slc_pair.master, nsubswath)
+        slave_bursts_indices = getattr(self.slc_pair.slave, nsubswath)
 
         # Execute the actual coregistration
         self._processor.process(
             graph,
-            subswath=f"IW{nsubswath}",
+            subswath=nsubswath,
             polorization=self.polarization.upper(),
             master_files=master_files,
             slave_files=slave_files,
             output_path=output_path,
             dry_run=self.dry_run,
             # add structure here
-            master_first_burst = master_bursts_indices["first_burst_index"],
-            master_last_burst = master_bursts_indices["last_burst_index"],
-            slave_first_burst = slave_bursts_indices["first_burst_index"],
-            slave_last_burst = slave_bursts_indices["last_burst_index"],
+            master_first_burst=master_bursts_indices["first_burst_index"],
+            master_last_burst=master_bursts_indices["last_burst_index"],
+            slave_first_burst=slave_bursts_indices["first_burst_index"],
+            slave_last_burst=slave_bursts_indices["last_burst_index"],
         )
 
         self.slc_pair.slave.append(destination=output_path)
         if not self.dry_run:
-            logger.info(f"COREGISTERING slave {self.slc_pair.slave.date} swath IW{nsubswath} completed.")
+            logger.info(
+                f"COREGISTERING slave {self.slc_pair.slave.date} swath IW{nsubswath} completed."
+            )
 
         if self.dry_run:
             logger.debug("DRY RUN: Creating dummy folders/files for testing purpose.")
@@ -157,7 +177,7 @@ class Sentinel1Coregistration(Coregistration):
 
     def _merge(self):
 
-        graph = graphs.GptGraphS1Merge.generate()
+        graph = graphs.GptGraphS1Merge.generate(self.processed_subswaths)
 
         output_path = os.path.join(
             self.output_dir,
@@ -211,21 +231,30 @@ class Sentinel1Coregistration(Coregistration):
 
         pol = self.polarization.upper()
         master_datestr = format_date(self.slc_pair.master.date)
-        for channel, suffix in product(("i", "q"), ("img", "hdr")):  # in-phase & quadrature channels
-            master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+        for channel, suffix in product(
+            ("i", "q"), ("img", "hdr")
+        ):  # in-phase & quadrature channels
+            # master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+            # 当只有 subwath 的数量等于 1 时，merged.data 里面的数据是 i_vv_mst_20210101.img，否则是 i_IW1_vv_mst_20210101.img 形式
+            master_filename = (
+                f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
+                if len(self.processed_subswaths) > 1
+                else f"{channel}_IW{self.processed_subswaths[0]}_{pol}_mst_{master_datestr}.{suffix}"
+            )
+
             dst_file = os.path.join(dst_dir, "merged.data", master_filename)
             src_file = os.path.join(src_dir, "merged.data", master_filename)
             # copy if not exists
             if os.path.exists(dst_file):
                 logger.debug(f"{dst_file} already exists.")
-                if suffix == "img" and self.prune:  # remove img file if exists
-                    os.remove(src_file)
+                # if suffix == "img" and self.prune:  # remove img file if exists
+                #     os.remove(src_file)
             else:
                 logger.debug(f"Linking {src_file} to {dst_file}.")
-                if self.prune:
-                    shutil.move(src_file, dst_file)
-                else:
-                    shutil.copy2(src_file, dst_file)
+                # if self.prune:  # 这一步 prune 个人理解去掉 shutil.move
+                # shutil.move(src_file, dst_file)
+                # else:
+                shutil.copy2(src_file, dst_file)
 
         master_symlink = os.path.join(self.output_dir, COREG_DIR, "master")
         if not self.dry_run:
@@ -297,4 +326,3 @@ class TSXCoregistration(Coregistration):
 
     def coregistration(self):
         pass
-

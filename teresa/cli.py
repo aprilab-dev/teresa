@@ -1,19 +1,22 @@
-import os
 import click
-import shutil
 import logging
-import coloredlogs
+import os
+import shutil
+
 import click_log
+import coloredlogs
 from datetime import datetime
-from . import stack, version
-from .coregistration import COREG_DIR
+
+from teresa import stack, version
+from teresa.coregistration import COREG_DIR
 
 
 logger = logging.getLogger("sLogger")
+# coleredlogs 的 handlers 缺省，暂时注释掉
 coloredlogs.install(  # set colored logs for console in cli
     level=logger.level,
     logger=logger,
-    fmt=logger.handlers[0].formatter._fmt  # type: ignore
+    fmt=logger.handlers[0].formatter._fmt,  # type: ignore
 )
 
 
@@ -41,24 +44,28 @@ def main():
     "-d",
     required=True,
     type=click.Path(exists=False, dir_okay=True, resolve_path=True),
-    help="The directory where resampled and coregistered SLCs are saved.")
+    help="The directory where resampled and coregistered SLCs are saved.",
+)
 @click.option(
     "--master",
     "-m",
     required=True,
     type=click.DateTime(formats=["%Y%m%d"]),
-    help="The master image in [yyyymmdd] format for coregistering the stack."
+    help="The master image in [yyyymmdd] format for coregistering the stack.",
 )
 @click_log.simple_verbosity_option(logger=logger)
 @click.option("--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run.")
-@click.option("--prune/--no-prune", default=True, help="Remove temporary processing data.")
-def coregister(source_dir, destination, master, dry_run: bool, prune: bool):
+@click.option("--prune/--no-prune", default=True, help="清除运行中的冗余数据")
+@click.option("--aoi", default=None, help="请输入 AOI 文件，缺省时则全景处理")  # 增加一个输入参数
+def coregister(source_dir, destination, master, dry_run: bool, prune: bool, aoi: bool):
     """
     Coregistrating a stack of SAR SLC images from source directory
     """
 
     # run coregistration
     loaded_stack = stack.Sentinel1SlcStack(sourcedir=source_dir).load()
+    if aoi:
+        loaded_stack = loaded_stack.crop(aoi=aoi)  # 此处就不做调整了，因为此时的 aoi 一定存在。
     loaded_stack.coregister(
         output=destination,
         master=datetime.strftime(master, "%Y%m%d"),
