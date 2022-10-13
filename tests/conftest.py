@@ -65,3 +65,16 @@ def create_stacks(tmpdir):
     for slc in slcs:
         test_slc_dir.join(slc).write("stacks")
     return test_slc_dir, {"20210507": 2, "20210519": 2, "20210401": 2}
+
+
+def create_slcimage(date, sourcedir):
+    # 根据日期和 source 创建一个 Sentinel1SlcImage 对象，以供 FindBusrts 单元测试使用。
+    slc_img = Sentinel1SlcImage(date=date)
+    slc_img.sourcedir = sourcedir
+    if os.path.exists(os.path.join(sourcedir, date)):  # 确保目录下不存在已有的 date 文件夹
+        shutil.rmtree(os.path.join(sourcedir, date))
+    source = tuple(os.path.join(sourcedir, fzip) for fzip in os.listdir(sourcedir))
+    for subswath in ("IW1", "IW2", "IW3"):
+        subswath_source = getattr(slc_img, subswath)
+        subswath_source["source"] = source
+    return slc_img

@@ -6,6 +6,7 @@ import shutil
 
 import teresa.coregistration as coreg
 from teresa.log import LOG_FNAME
+from teresa.helpers import FindBursts
 
 logger = logging.getLogger("sLogger")
 
