@@ -74,7 +74,9 @@ class FindBursts:
     def __init__(self, slc_image, aoi: str):  # TODO 如何定义 slc_image 的 Typehint。
         """在对象初始化阶段，提取该 Sentinel1SlcImage 对象所需的所有 xml 文件，以及将 AOI 转为 polygon 对象。"""
         self.slc_image = slc_image
-        self.meta_sourcedir = os.path.join(slc_image.sourcedir, slc_image.date)
+        self.meta_sourcedir = os.path.join(
+            slc_image.sourcedir, slc_image.date
+        )  # meta_sourcedir 为 slc_image 对象所需的所有影像的源文件的存储路径，如: /data/slc/Chengdu/20210101/
         self._extract_meta()  # 将 SlcImage 中三个条带对应的文件解压
         self.aoi = self._other2polygon(aoi)  # 将 aoi 转为 polygon，可以是 polygon 字符串或 geojson 文件
 
@@ -104,7 +106,7 @@ class FindBursts:
         for subswath in ("IW1", "IW2", "IW3"):
             fzips = getattr(self.slc_image, subswath)["source"]
             for fzip in fzips:
-                if fzip not in unzipped:  # 当某个文件已经解压过时，跳过
+                if fzip not in unzipped:  # 三个 subswath 可能存在数据重复的情况，如果已解压过则跳过
                     _unzip(fzip)
                     unzipped += (fzip,)
 
@@ -124,7 +126,7 @@ class FindBursts:
 
     def _read_xml(self, fxml: str):
         """读取一个 xml 文件中所需的信息，存放到 self.xml_info 中，points_info 是一个 np.array 格式的数组，
-        第一行至第四行以此是：行坐标，列坐标，经度，纬度，其每一列是一一对应的关系，这样可以使用矩阵固定它们之间的
+        第一行至第四行依次是：行坐标，列坐标，经度，纬度，其每一列是一一对应的关系，这样可以使用矩阵固定它们之间的
         关系。
         """
         xml = etree.parse(fxml, etree.XMLParser())
@@ -209,13 +211,17 @@ class FindBursts:
         return xml_boundary
 
     def get_bursts_and_source(self, iw: str) -> tuple:
-        """计算某一个 iw 的起止编号以及 source 文件。"""
+        """计算某一个 iw 的起止编号以及 source 文件。
+        bursts_start，bursts_end 和 source 中的元素是一一对应的关系，例如 bursts_start = (3,1), bursts_end = (9,2),
+        source = ("1.zip", "2.zip")，则说明在 iw 这个条带中，1.zip 影像对应的起止 burst 编号为 3，9，2.zip 影像对应的起止编号
+        为 1, 2
+        """
         source, bursts_start, bursts_end = (), (), ()
         meta_dir = self.meta_sourcedir  # meta_dir 为该 Sentinel1SlcImage 对象对应头文件的目录
         for safe_file in os.listdir(meta_dir):
             fname = safe_file.split(".")[0]  # 某一个文件不带后缀的文件名，因为原始数据为 *.zip，safe_file 为 *.SAFE。
             xml_dir = os.path.join(meta_dir, safe_file, "annotation")  # 该文件 xml 数据存放的具体路径
-            xml_path = glob.glob(os.path.join(xml_dir, f"s1*{iw}*"))[0]  # 该文件中对应某个 xml 的文件路径。
+            xml_path = glob.glob(os.path.join(xml_dir, f"s1*{iw}*"))[0]  # 该文件中对应该 IW 的 xml 的文件路径。
             subswath_boundary = self.xml2polygon(xml_path)  # 将此 xml 文件转换成范围 Polygon
             overlapping_boundary = (
                 None
@@ -235,7 +241,7 @@ class FindBursts:
         return bursts_start, bursts_end, source
 
     def get_minimum_overlapping(self) -> dict:
-        """此函数为 crop 的接口函数，逐条带计算所需的 source 文件以及起止 burst 编号
+        """此函数为 crop 的接口函数，逐条带计算所需的 source 文件以及起止 burst 编号，返回 index_and_source 字典
 
         例子
         ---
@@ -243,7 +249,8 @@ class FindBursts:
             字典的 key 值为 subwath 编号，为 IW1，IW2，IW3。value 值为每个条带对应的起始 burst 编号和终止 burst 编号，以及其所需的
             zip 文件，以 IW1 为例，假设该条带需要两景影像，1.zip 和 2.zip，在 1.zip 影像中对应的 burst 起止编号为 5-9，在 2.zip 中
             对应的 burst 的起止编号为 1-3。其在 index_and_source 中的形式为 {"IW1": {"first_burst_index": 5,
-            "last_burst_index": 12, "source": (../1.zip, ../2.zip)}
+            "last_burst_index": 12, "source": (../1.zip, ../2.zip)}。如果 AOI 与某个条带不相交，比如不与条带三相交，则 IW3 对应
+            的 KEY-VALUE 为 {"IW3": {"first_burst_index": 0, "last_burst_index": 0, "source": ()}}
         """
         index_and_source = {}
         for iw in ("IW1", "IW2", "IW3"):
