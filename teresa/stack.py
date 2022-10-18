@@ -6,7 +6,7 @@ import shutil
 
 import teresa.coregistration as coreg
 from teresa.log import LOG_FNAME
-from teresa.helpers import FindBursts
+from teresa.helpers import BurstsUtilities
 
 logger = logging.getLogger("sLogger")
 
@@ -111,7 +111,7 @@ class Sentinel1SlcImage(SlcImage):
         >>>'/home/jerry/ceshi/S1A_IW_SLC__1SDV_20210822T100418_20210822T100445_039341_04A572_25BF.zip')}
         """
         # 此处逻辑是针对于每个 SlcImage 对象中的 IW1，IW2，IW3 的属性，以对应的 xml 文件来进行更新
-        cropping_attributes = FindBursts(
+        cropping_attributes = BurstsUtilities(
             self, aoi
         ).get_minimum_overlapping()  # 此处作用是更新 SlcImage 中的 IW1，IW2，IW3 属性
         shutil.rmtree(os.path.join(self.sourcedir, self.date))  # 用完之后删掉
