@@ -57,7 +57,9 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
             slave_datestr = format_date(slave)
             slave_filename = f"{channel}_{pol}_slv_{slave_datestr}.{suffix}"
             assert os.path.isfile(
-                os.path.join(source_dir, COREG_DIR, slave, "merged.data", slave_filename)
+                os.path.join(
+                    source_dir, COREG_DIR, slave, "merged.data", slave_filename
+                )
             )
 
     # assert DEM file exstence
@@ -73,7 +75,9 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
             for slave, _ in tmp_stack.slc.items():
                 master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
                 assert os.path.isfile(
-                    os.path.join(source_dir, COREG_DIR, slave, "merged.data", master_filename)
+                    os.path.join(
+                        source_dir, COREG_DIR, slave, "merged.data", master_filename
+                    )
                 )
 
     # assert file NOT existence if prune
@@ -85,7 +89,9 @@ def test_sentinel1_slcstack_coregister(tmpdir, mocked, prune):
                 master_filename = f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
                 assert not os.path.isfile(
                     # os.path.join(source_dir, COREG_DIR, slave, "merged.data", master_filename)
-                    os.path.join(source_dir, COREG_DIR, slave, "IW1.data")  # prune 功能改成清除 IW1.data
+                    os.path.join(
+                        source_dir, COREG_DIR, slave, "IW1.data"
+                    )  # prune 功能改成清除 IW1.data
                 )
         # check DEM existence
         assert not os.path.isfile(
@@ -107,5 +113,13 @@ def test_slcimage_append():
     # update the object
     dummy_slcimage.append(source="dummy_location3", destination="dummy_output3")
     # check if the object is updated
-    assert dummy_slcimage.source == ("dummy_location1", "dummy_location2", "dummy_location3")
-    assert dummy_slcimage.destination == ("dummy_output1", "dummy_output2", "dummy_output3")
+    assert dummy_slcimage.source == (
+        "dummy_location1",
+        "dummy_location2",
+        "dummy_location3",
+    )
+    assert dummy_slcimage.destination == (
+        "dummy_output1",
+        "dummy_output2",
+        "dummy_output3",
+    )

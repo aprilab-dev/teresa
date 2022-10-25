@@ -54,7 +54,9 @@ def main():
     help="The master image in [yyyymmdd] format for coregistering the stack.",
 )
 @click_log.simple_verbosity_option(logger=logger)
-@click.option("--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run.")
+@click.option(
+    "--dry-run", "-n", "dry_run", default=False, is_flag=True, help="Dry run."
+)
 @click.option("--prune/--no-prune", default=True, help="清除运行中的冗余数据")
 @click.option("--aoi", default=None, help="请输入 AOI 文件，缺省时则全景处理")  # 增加一个输入参数
 def coregister(source_dir, destination, master, dry_run: bool, prune: bool, aoi: bool):

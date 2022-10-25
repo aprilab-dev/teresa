@@ -48,7 +48,8 @@ test_data_find_bursts = [
 )
 def test_find_bursts(polygon, first_burst_index, last_burst_index, source_number):
     slc_img = conftest.create_slcimage(
-        date="20210822", sourcedir=os.path.join(os.path.dirname(__file__), "aux/s1/sourcedir")
+        date="20210822",
+        sourcedir=os.path.join(os.path.dirname(__file__), "aux/s1/sourcedir"),
     )
     if polygon:
         slc_img.crop(aoi=polygon)

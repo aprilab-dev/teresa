@@ -1,4 +1,3 @@
-
 from setuptools import setup, find_packages
 
 with open("README.md") as fp:
@@ -12,10 +11,7 @@ with open("teresa/version.py") as fp:
 # dependencies
 with open("requirements.txt") as fp:
     install_requires = fp.read()
-tests_require = [   # tests
-    "pytest",
-    "pytest-cov"
-]
+tests_require = ["pytest", "pytest-cov"]  # tests
 docs_require = [  # docs
     "sphinx",
 ]
@@ -36,8 +32,5 @@ setup(
     """,
     setup_requires=["pytest-runner", "pylint"],
     tests_require=tests_require,
-    extras_require={
-        "test": tests_require,
-        "doc": docs_require
-    },
+    extras_require={"test": tests_require, "doc": docs_require},
 )

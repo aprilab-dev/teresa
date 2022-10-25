@@ -84,7 +84,9 @@ class Coregistration(abc.ABC):
             open(os.path.join(output_path, "merged.data", "elevation.hdr"), "w").close()
             open(
                 os.path.join(
-                    output_path, "merged.data", f"coh_VV_{master_datestr}_{master_datestr}.hdr"
+                    output_path,
+                    "merged.data",
+                    f"coh_VV_{master_datestr}_{master_datestr}.hdr",
                 ),
                 "w",
             ).close()

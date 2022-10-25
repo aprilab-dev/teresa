@@ -75,7 +75,11 @@ class Sentinel1SlcImage(SlcImage):
         """
 
         super(Sentinel1SlcImage, self).__init__(date)
-        for nsubswath in ("IW1", "IW2", "IW3"):  # initialize bursts indice for 3 subswath
+        for nsubswath in (
+            "IW1",
+            "IW2",
+            "IW3",
+        ):  # initialize bursts indice for 3 subswath
             # 定义 fmeta（metafile路径们）为空元组
             setattr(
                 self,
@@ -188,7 +192,9 @@ class Sentinel1SlcStack(SlcStack):
         for acquisition, _ in self.slc.items():
             self.slc[acquisition].crop(aoi=aoi)
             completed_item += 1
-            logger.info(f"CROP PROCESS: {completed_item}/{len(self.slc.items())} completed.")
+            logger.info(
+                f"CROP PROCESS: {completed_item}/{len(self.slc.items())} completed."
+            )
         return self
 
     def coregister(
@@ -217,7 +223,9 @@ class Sentinel1SlcStack(SlcStack):
                 prune=prune,
             )
             completed_item += 1
-            logger.info(f"LOAD PROGRESS: {completed_item}/{len(self.slc.items())-1} completed.")
+            logger.info(
+                f"LOAD PROGRESS: {completed_item}/{len(self.slc.items())-1} completed."
+            )
 
         """
         radarcode dem: for radarcoding we can coregister master with master.

@@ -6,7 +6,9 @@ from datetime import datetime
 # HARDCODE the log into /tmp/log folder.
 LOG_FOLDER = "/tmp/log/teresa"
 # define log filename based on dates
-LOG_FNAME = os.path.join(LOG_FOLDER, "teresa_{:%Y-%m-%d_%H-%M-%S}.log".format(datetime.now()))
+LOG_FNAME = os.path.join(
+    LOG_FOLDER, "teresa_{:%Y-%m-%d_%H-%M-%S}.log".format(datetime.now())
+)
 os.makedirs(LOG_FOLDER, exist_ok=True)
 
 
@@ -22,8 +24,8 @@ def log_config():
     # need to be.
     # traverse all logs in the directory and delete if empty
     for f in os.listdir(LOG_FOLDER):
-        if os.stat(os.path.join(LOG_FOLDER,f)).st_size == 0:
-            os.remove(os.path.join(LOG_FOLDER,f))
+        if os.stat(os.path.join(LOG_FOLDER, f)).st_size == 0:
+            os.remove(os.path.join(LOG_FOLDER, f))
 
     # https://stackoverflow.com/questions/13649664/how-to-use-logging-with-pythons-fileconfig-and-configure-the-logfile-filename
     logging.config.fileConfig(

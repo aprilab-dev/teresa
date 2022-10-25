@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import re
 import glob
@@ -9,6 +10,7 @@ import requests
 import logging
 import zipfile
 import numpy as np
+from typing import TYPE_CHECKING
 
 from lxml import etree
 from shapely.geometry import shape, Polygon
@@ -18,7 +20,9 @@ logger = logging.getLogger("sLogger")
 
 API_KEY = "B5EBZ-W2GCI-Q23GO-5RJTM-YRZL7-WJBHO"
 
-np.sort
+if TYPE_CHECKING:
+    from teresa.stack import Sentinel1SlcImage
+
 # define a customized API error
 class QQMapApiError(Exception):
     def __init__(self, message):
@@ -31,7 +35,9 @@ def latlon_to_city(lat: float, lon: float) -> str:
     is in China, return "cn_xxxxxx" where "xxxxxx" is the city name.
     """
 
-    url = "https://apis.map.qq.com/ws/geocoder/v1/?location={},{}&key={}".format(lat, lon, API_KEY)
+    url = "https://apis.map.qq.com/ws/geocoder/v1/?location={},{}&key={}".format(
+        lat, lon, API_KEY
+    )
 
     try:
         content = requests.get(url, timeout=60).json()
@@ -53,7 +59,7 @@ def latlon_to_city(lat: float, lon: float) -> str:
 
 
 class BurstsUtilities:
-    """BurstsUtilities 计算 Sentinel1SlcImage 对象需要的 source，subswath 以及 burst 的起止编号。
+    """:class: BurstsUtilities 计算 :class: Sentinel1SlcImage 对象需要的 source，subswath 以及 burst 的起止编号。
     在初始化阶段，提取 Sentinel1SlcImage 对象所需的所有 xml 文件，同时将输入的 aoi 转为 Polygon 对象。
 
     Parameters
@@ -65,7 +71,6 @@ class BurstsUtilities:
     Attributes
     ----------
     slc_image : Sentinel1SlcImage
-        Sentinel1SlcImage 类的对象
     aoi : str
         Geojson 或字符串格式的 AOI，字符串形式如："POLYGON (...)"
     xml_info : dict
@@ -86,17 +91,21 @@ class BurstsUtilities:
 
     """
 
-    def __init__(self, slc_image, aoi: str):  # TODO 如何定义 slc_image 的 Typehint。
+    def __init__(
+        self, slc_image: Sentinel1SlcImage, aoi: str
+    ):  # TODO 如何定义 slc_image 的 Typehint。
         self.slc_image = slc_image
         self.manifest_dir = os.path.join(
             slc_image.sourcedir, slc_image.date
         )  # manifest_dir 为 slc_image 对象所需的所有影像的源文件的存储路径，如: /data/slc/Chengdu/20210101/
         self._extract_meta()  # 将 SlcImage 中三个条带对应的文件解压
-        self.aoi = self._aoi2polygon(aoi)  # 将 aoi 转为 polygon，可以是 polygon 字符串或 geojson 文件
+        self.aoi = self._aoi2polygon(
+            aoi
+        )  # 将 aoi 转为 polygon，可以是 polygon 字符串或 geojson 文件
 
     def _extract_meta(self):
         """提取输入对象中 source 属性下的所有 zip 文件的源文件，存放在工作目录下对应日期的目录。比如某个
-        Sentinel1SlcImage 对应的日期为 20210101，所有 zip 文件的存放目录为 /home/jerry/test,
+        :class: Sentinel1SlcImage 对应的日期为 20210101，所有 zip 文件的存放目录为 /home/jerry/test,
         则提取出的文件存放路径为: /home/jerry/test/20210101/1.SAFE，此时该 SAFE 文件内部数据的存放结构与原始
         数据一致，但不包括影像数据。
         """
@@ -107,8 +116,7 @@ class BurstsUtilities:
                 with zipfile.ZipFile(fzip, "r") as zipfp:
                     zip_file = zipfile.ZipFile(fzip)
                     for fxml in zip_file.namelist():
-                        re_matched = re.match(r"(.*)/annotation/(s1.*vv.*)", fxml)
-                        if re_matched:
+                        if re.match(r"(.*)/annotation/(s1.*vv.*)", fxml):
                             zip_file.extract(fxml, self.manifest_dir)
             except zipfile.BadZipFile:
                 logger.error(f"{fzip} 文件损坏")
@@ -144,9 +152,9 @@ class BurstsUtilities:
     def _read_xml(self, fxml: str):
         """将 xml 文件中的信息存储到字典中。"""
         xml = etree.parse(fxml, etree.XMLParser())
-        line_per_burst, numbers_per_subswath = int(xml.xpath("//linesPerBurst/text()")[0]), int(
-            xml.xpath("//numberOfLines/text()")[0]
-        )
+        line_per_burst, number_of_lines = int(
+            xml.xpath("//linesPerBurst/text()")[0]
+        ), int(xml.xpath("//numberOfLines/text()")[0])
         lines, pixels = list(map(int, xml.xpath("//line/text()"))), list(
             map(int, xml.xpath("//pixel/text()"))
         )
@@ -154,11 +162,11 @@ class BurstsUtilities:
             map(float, xml.xpath("//latitude/text()"))
         )
         points_info = np.array([lines, pixels, longitudes, latitudes])
-        burst_number = numbers_per_subswath // line_per_burst
+        number_of_bursts = number_of_lines // line_per_burst
         self.xml_info = {
             "points_info": points_info,
             "lines_per_burst": line_per_burst,
-            "burst_number": burst_number,
+            "number_of_burts": number_of_bursts,
         }
 
     def find_burst_in_overlap(self, overlap: Polygon) -> int:
@@ -179,26 +187,28 @@ class BurstsUtilities:
 
         """
 
-        points_info, lines_per_burst, burst_number = (
+        points_info, lines_per_burst, number_of_burts = (
             self.xml_info["points_info"],
-            int(self.xml_info["lines_per_burst"]),
-            int(self.xml_info["burst_number"]),
+            self.xml_info["lines_per_burst"],
+            self.xml_info["number_of_burts"],
         )
         lonlat = points_info[2:4].T  # numpy 线性拟合需要参数以列排列，将行转秩
         coefficient = np.concatenate(
             (np.ones((lonlat.shape[0], 1)), lonlat), axis=1
         )  # 增加一个单位向量作为常数项
-        w0, w1, w2 = np.linalg.lstsq(coefficient, points_info[0], rcond=None)[0]  # 计算出三个参数
+        w0, w1, w2 = np.linalg.lstsq(coefficient, points_info[0], rcond=None)[
+            0
+        ]  # 计算出三个参数
         coordinates = list(overlap.exterior.coords)  # 将相交区域的范围转为坐标列表
         bursts = []
         for lon, lat in coordinates:  # 计算每一个坐标对应的 burst 编号
             line = w0 + w1 * lon + w2 * lat
-            burst = int(line) // lines_per_burst + 1
-            if burst < 1:
-                burst = 1
-            elif burst > burst_number:
-                burst = burst_number
-            bursts.append(burst)
+            burst_number = int(line) // lines_per_burst + 1
+            if burst_number < 1:
+                burst_number = 1
+            elif burst_number > number_of_burts:
+                burst_number = number_of_burts
+            bursts.append(burst_number)
             burst_start, burst_end = min(bursts), max(bursts)
         return burst_start, burst_end
 
@@ -208,7 +218,7 @@ class BurstsUtilities:
         points_info = self.xml_info["points_info"]
         # 当行坐标为0 或 最大时，对应的该 subswath 的上下两个边界
         # 当列坐标为 0 或最大时，对应的该 subswath 的左右两个边界
-        upper_index, lower_index, left_index, right_index = map(
+        upper_bound, lower_bound, left_bound, right_bound = map(
             lambda x, y: np.where(points_info[x] == y),
             [0, 0, 1, 1],
             [0, np.max(points_info[0]), 0, np.max(points_info[1])],
@@ -217,12 +227,11 @@ class BurstsUtilities:
         # 一一对应的关系，获取该角点的经纬度。
         upper_left, upper_right, lower_right, lower_left = map(
             lambda x, y: points_info[2:4, np.intersect1d(x, y)].T.tolist()[0],
-            [upper_index, upper_index, lower_index, lower_index],
-            [left_index, right_index, right_index, left_index],
+            [upper_bound, upper_bound, lower_bound, lower_bound],
+            [left_bound, right_bound, right_bound, left_bound],
         )
-        corners = [
-            corner for corner in (upper_left, upper_right, lower_right, lower_left, upper_left)
-        ]
+        corners = [upper_left, upper_right, lower_right, lower_left, upper_left]
+
         return Polygon(corners)  # 根据四个角生成对应范围的 Polygon
 
     def get_bursts_and_source(self, iw: str) -> tuple:
@@ -261,9 +270,15 @@ class BurstsUtilities:
         source, start_bursts, end_bursts = (), (), ()
         manifest_dir = self.manifest_dir  # meta_dir 为该 Sentinel1SlcImage 对象对应头文件的目录
         for safe_file in os.listdir(manifest_dir):
-            fname = safe_file.split(".")[0]  # 某一个文件不带后缀的文件名，因为原始数据为 *.zip，safe_file 为 *.SAFE。
-            xml_dir = os.path.join(manifest_dir, safe_file, "annotation")  # 该文件 xml 数据存放的具体路径
-            xml_path = glob.glob(os.path.join(xml_dir, f"s1*{iw}*"))[0]  # 该文件中对应该 IW 的 xml 的文件路径。
+            fname = safe_file.split(".")[
+                0
+            ]  # 某一个文件不带后缀的文件名，因为原始数据为 *.zip，safe_file 为 *.SAFE。
+            xml_dir = os.path.join(
+                manifest_dir, safe_file, "annotation"
+            )  # 该文件 xml 数据存放的具体路径
+            xml_path = glob.glob(os.path.join(xml_dir, f"s1*{iw}*"))[
+                0
+            ]  # 该文件中对应该 IW 的 xml 的文件路径。
             subswath_boundary = self._xml2polygon(xml_path)  # 将此 xml 文件转换成范围 Polygon
             # 判断此 Polygon 是否与 AOI 相交，如相交返回 polygon 类的相交区域，否则返回 None。
             overlapped = (
@@ -283,7 +298,9 @@ class BurstsUtilities:
             # 起始 burst 往影像上方扩大一个 burst，如果计算出的起始 burst 编号为 1，则取 1。
             start_bursts += (max(burst_start - 1, 1),)
             # 终止 burst 往影像下方扩大一个 burst，如果计算出的终止编号为 9，则取 9。
-            end_bursts += (min(burst_end + 1, 9),)  # TODO 将 9 替换成该 subswath 的真实 burst 数。
+            end_bursts += (
+                min(burst_end + 1, 9),
+            )  # TODO 将 9 替换成该 subswath 的真实 burst 数。
         return start_bursts, end_bursts, source
 
     def get_minimum_overlapping(self) -> dict:
@@ -324,7 +341,11 @@ class BurstsUtilities:
             # 当这两个元组为空时，说明 AOI 与该条带不相交，同时 source 也为空数组。在 coregister
             # 中，若 source 为空，则会直接跳过该条带。
             if not (start_bursts and end_bursts):
-                index_and_source[iw] = {"first_burst_index": 0, "last_burst_index": 0, "source": ()}
+                index_and_source[iw] = {
+                    "first_burst_index": 0,
+                    "last_burst_index": 0,
+                    "source": (),
+                }
                 continue
             # slice assembly 后的起始 burst 编号总是 start_bursts 中的最大值，因为下方的
             # subswath 起始 burst 编号总是为 1；终止编号为 end_bursts 中数字的和，具体可理解此
