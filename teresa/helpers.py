@@ -59,7 +59,7 @@ def latlon_to_city(lat: float, lon: float) -> str:
 
 
 class BurstsUtilities:
-    """:class: BurstsUtilities 计算 :class: Sentinel1SlcImage 对象需要的 source，subswath 以及 burst 的起止编号。
+    """:class: `BurstsUtilities` 计算 :class: `Sentinel1SlcImage` 对象需要的 source，subswath 以及 burst 的起止编号。
     在初始化阶段，提取 Sentinel1SlcImage 对象所需的所有 xml 文件，同时将输入的 aoi 转为 Polygon 对象。
 
     Parameters
@@ -91,9 +91,7 @@ class BurstsUtilities:
 
     """
 
-    def __init__(
-        self, slc_image: Sentinel1SlcImage, aoi: str
-    ):  # TODO 如何定义 slc_image 的 Typehint。
+    def __init__(self, slc_image: Sentinel1SlcImage, aoi: str):
         self.slc_image = slc_image
         self.manifest_dir = os.path.join(
             slc_image.sourcedir, slc_image.date
@@ -105,7 +103,7 @@ class BurstsUtilities:
 
     def _extract_meta(self):
         """提取输入对象中 source 属性下的所有 zip 文件的源文件，存放在工作目录下对应日期的目录。比如某个
-        :class: Sentinel1SlcImage 对应的日期为 20210101，所有 zip 文件的存放目录为 /home/jerry/test,
+        :class: `Sentinel1SlcImage` 对应的日期为 20210101，所有 zip 文件的存放目录为 /home/jerry/test,
         则提取出的文件存放路径为: /home/jerry/test/20210101/1.SAFE，此时该 SAFE 文件内部数据的存放结构与原始
         数据一致，但不包括影像数据。
         """

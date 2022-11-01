@@ -58,7 +58,6 @@ class SlcImage:
 
 
 class Sentinel1SlcImage(SlcImage):
-
     """`Sentinel1SlcImage` 是 `SlcImage` 的子类，定义了一些只有 Sentinel-1 才有的属性
     和方法。
     """
