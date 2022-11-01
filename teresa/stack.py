@@ -6,6 +6,7 @@ import shutil
 
 import teresa.coregistration as coreg
 from teresa.log import LOG_FNAME
+from teresa.helpers import BurstsUtilities
 
 logger = logging.getLogger("sLogger")
 
@@ -57,7 +58,6 @@ class SlcImage:
 
 
 class Sentinel1SlcImage(SlcImage):
-
     """`Sentinel1SlcImage` 是 `SlcImage` 的子类，定义了一些只有 Sentinel-1 才有的属性
     和方法。
     """
@@ -74,7 +74,11 @@ class Sentinel1SlcImage(SlcImage):
         """
 
         super(Sentinel1SlcImage, self).__init__(date)
-        for nsubswath in ("IW1", "IW2", "IW3"):  # initialize bursts indice for 3 subswath
+        for nsubswath in (
+            "IW1",
+            "IW2",
+            "IW3",
+        ):  # initialize bursts indice for 3 subswath
             # 定义 fmeta（metafile路径们）为空元组
             setattr(
                 self,
@@ -110,7 +114,7 @@ class Sentinel1SlcImage(SlcImage):
         >>>'/home/jerry/ceshi/S1A_IW_SLC__1SDV_20210822T100418_20210822T100445_039341_04A572_25BF.zip')}
         """
         # 此处逻辑是针对于每个 SlcImage 对象中的 IW1，IW2，IW3 的属性，以对应的 xml 文件来进行更新
-        cropping_attributes = FindBursts(
+        cropping_attributes = BurstsUtilities(
             self, aoi
         ).get_minimum_overlapping()  # 此处作用是更新 SlcImage 中的 IW1，IW2，IW3 属性
         shutil.rmtree(os.path.join(self.sourcedir, self.date))  # 用完之后删掉
@@ -187,7 +191,9 @@ class Sentinel1SlcStack(SlcStack):
         for acquisition, _ in self.slc.items():
             self.slc[acquisition].crop(aoi=aoi)
             completed_item += 1
-            logger.info(f"CROP PROCESS: {completed_item}/{len(self.slc.items())} completed.")
+            logger.info(
+                f"CROP PROCESS: {completed_item}/{len(self.slc.items())} completed."
+            )
         return self
 
     def coregister(
@@ -216,7 +222,9 @@ class Sentinel1SlcStack(SlcStack):
                 prune=prune,
             )
             completed_item += 1
-            logger.info(f"LOAD PROGRESS: {completed_item}/{len(self.slc.items())-1} completed.")
+            logger.info(
+                f"LOAD PROGRESS: {completed_item}/{len(self.slc.items())-1} completed."
+            )
 
         """
         radarcode dem: for radarcoding we can coregister master with master.
