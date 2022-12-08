@@ -1,9 +1,10 @@
 import os
+import unittest
 import pytest
 
 from tests import conftest
 from teresa import helpers
-
+from unittest import mock
 
 test_data_latlon_to_city = [
     ((39.994910, 116.474848), "cn_beijing"),
@@ -60,11 +61,3 @@ def test_find_bursts(polygon, first_burst_index, last_burst_index, source_number
         assert slc_img.IW1["first_burst_index"] == first_burst_index
         assert slc_img.IW3["last_burst_index"] == last_burst_index
         assert len(slc_img.IW1["source"]) == source_number
-
-
-# test_find_bursts(
-#     "POLYGON((119.1082 34.7146,118.4832 34.071,119.4352 33.5379,119.641 34.21,119.1082 34.7146))",
-#     1,
-#     4,
-#     1,
-# )

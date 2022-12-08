@@ -241,7 +241,7 @@ class Sentinel1Coregistration(Coregistration):
             master_filename = (
                 f"{channel}_{pol}_mst_{master_datestr}.{suffix}"
                 if len(self.processed_subswaths) > 1
-                else f"{channel}_IW{self.processed_subswaths[0]}_{pol}_mst_{master_datestr}.{suffix}"
+                else f"{channel}_{self.processed_subswaths[0]}_{pol}_mst_{master_datestr}.{suffix}"
             )
 
             dst_file = os.path.join(dst_dir, "merged.data", master_filename)
