@@ -5,8 +5,6 @@
 
 # TERESA
 
-[[_TOC_]]
-
 ## TERESA 是什么？
 
 `[Te]rraquanta's software for [Re]gistration and [Sa]mpling` 是一个用来针对 SAR（Synthetic Aperture Radar） 的 SLC（Single Look Complex） 数据的配准与重采样的服务（[什么是配准与重采样？](https://www.mdpi.com/2072-4292/10/9/1405/htm)）。
