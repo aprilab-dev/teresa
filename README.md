@@ -1,19 +1,19 @@
-# TERESA
+<p align="center">
+  <img width="256" src="docs/logo.png" alt="teresa">
+</p>
 
-[![pipeline status](https://git.terraqt.io/arcticwind/seafringe/teresa/badges/main/pipeline.svg)](https://git.terraqt.io/arcticwind/seafringe/teresa/-/commits/main)
-[![coverage report](https://git.terraqt.io/arcticwind/seafringe/teresa/badges/main/coverage.svg)](https://git.terraqt.io/arcticwind/seafringe/teresa/-/commits/main)
+
+# TERESA
 
 [[_TOC_]]
 
 ## TERESA 是什么？
 
-`[Te]rraquanta's software for [Re]gistration and [Sa]mpling` 是一个用来针对 SAR（Synthetic Aperture Radar） 的 SLC（Single Look Complex） 数据的配准与重采样的服务（[什么是配准与重采样？](https://www.mdpi.com/2072-4292/10/9/1405/htm)）。更多的信息可以在 [everest 页面](https://everest.terraqt.ink/display/DEV/teresa)上找到。
+`[Te]rraquanta's software for [Re]gistration and [Sa]mpling` 是一个用来针对 SAR（Synthetic Aperture Radar） 的 SLC（Single Look Complex） 数据的配准与重采样的服务（[什么是配准与重采样？](https://www.mdpi.com/2072-4292/10/9/1405/htm)）。
 
 `teresa` 可以实现对影像栈（a **stack** of SAR SLC images）的批量配准。目前 `teresa` 配准的实现方式是一个基于 `gpt`（[什么是 gpt？](http://step.esa.int/docs/tutorials/command_line_inSAR_processing.pdf)） 的 wrapper。
 
 ## 安装
-
-~~`teresa` 即将发布在大地量子的 pypi 平台上。~~
 
 `teresa` 的安装步骤如下：
 
@@ -21,7 +21,7 @@
 
 ```bash
 # 你可以把 $HOME 换成任何你想要存放 teresa 的文件夹。
-git clone git@git.terraqt.io:arcticwind/seafringe/teresa.git $HOME/teresa
+git clone git@github.com:aprilab-dev/teresa.git $HOME/teresa
 ```
 
 ### 2. 安装依赖
@@ -61,7 +61,6 @@ teresa
 Usage: teresa [OPTIONS] COMMAND [ARGS]...
 
   Teresa is a command line tool for coregistering a stack of SAR SLC images.
-  For more details see: https://git.terraqt.io/arcticwind/seafringe/teresa.
 
 Options:
   --version  Show the version and exit.
