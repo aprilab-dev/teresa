@@ -11,6 +11,11 @@
 
 `teresa` 可以实现对影像栈（a **stack** of SAR SLC images）的批量配准。目前 `teresa` 配准的实现方式是一个基于 `gpt`（[什么是 gpt？](http://step.esa.int/docs/tutorials/command_line_inSAR_processing.pdf)） 的 wrapper。
 
+## TERESA 有什么特色？
+
+`teresa` 可以基于命令行进行批处理，通过一系列的优化，极大地提高运行效率。
+
+
 ## 安装
 
 `teresa` 的安装步骤如下：
