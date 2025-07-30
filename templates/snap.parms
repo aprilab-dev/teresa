@@ -1,0 +1,19 @@
+{ 
+"SNAP_parameters" : {
+    "snapPath" : "/opt/snap/bin",          # path to SNAP binaries
+    "repoPath" : "/home/rc/sw/g-mapit/",           # path to G-MaPIT
+    "ram" : 8000,                                  # [MB]
+    "cores" : 32                                   # physical 
+},
+"Stack_parameters" : {
+    "work_dir" : '/data/tests/junjun/', # processing directory
+    "data_dirs" : ('/data/tests/junjun/ASC142',),       # list of paths to SLC data
+    "swaths" : ('IW1',),                           # list of all usable swaths
+    "min_lon" : '116.40',                          # Specify  AOI corners:
+    "max_lon" : '116.57',
+    "min_lat" : '39.90',
+    "max_lat" : '40.02',
+    "startDate" : '20220106',
+    "endDate" : '20230101',                        # leave blank to use all SLC
+    "masterDate" : '20220717'                      # leave blank to select optimal
+}}

@@ -1,0 +1,31 @@
+c The DORIS input card for radar coding DEMs
+c
+
+comment  ___general options___
+c
+SCREEN     info
+MEMORY     3000
+BEEP       error
+OVERWRITE  on
+BATCH      on
+
+PROCESS    comprefdem
+c
+comment  ___i/o files___
+c
+M_RESFILE  ../master/master.res
+S_RESFILE  slavedem.res
+I_RESFILE  dem_ell.res
+LOGFILE    dem_ell.out
+c
+comment  ___step comprefdem___
+c
+CRD_IN_DEM     /data/auxiliary/dem/fr_paris_lt1/srtm1_wgs84_ellipsoid.dem 
+CRD_IN_FORMAT  r4
+CRD_IN_SIZE    7201 7201
+CRD_IN_DELTA   0.000277777777778 0.000277777777778
+CRD_IN_UL      50.0 1.0
+CRD_IN_NODATA  -32768
+CRD_OUT_FILE   /dev/null
+CRD_OUT_DEM_LP ./dem_radar_ell.raw
+STOP

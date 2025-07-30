@@ -1,0 +1,49 @@
+{ 
+    "stack_parameters" : {
+        "work_dir"    : "/data/tests/junjun",                             # processing directory
+        "data_dirs"   : "/data/tests/junjun/slc_xianfeng/bc4/test",       # list of paths to SLC data
+        "masterDate" : "20250422"                                         # leave blank to select optimal
+    },
+    "coarsecorr" : {
+        "CC_METHOD"   : "magfft",        
+        "CC_ACC"      : 8000,                              
+        "CC_NWIN"     : 21,   
+        "CC_WINSIZE"  : "512 512",                              
+        "CC_INITOFF " : "orbit"          
+    },
+    "fine" : {
+        "FC_METHOD"   : "oversample",         
+        "FC_NWIN"     : 6000,                                 
+        "FC_WINSIZE"  : "128 128",        
+        "FC_ACC"      : "32 32",        
+        "FC_INITOFF"  : "coarsecorr",                                  
+        "FC_OSFACTOR" : 32,
+        "FC_SHIFTAZI" : "ON"    
+    },
+    "coregpm" : {
+        "CPM_THRESHOLD" : 0.65,      
+        "CPM_DEGREE"    : 3,                                
+        "CPM_WEIGHT"    : "quadratic",     
+        "CPM_MAXITER"   : 8000        
+    },
+    "resample" : {
+        "RS_METHOD"     : "rc12p",          
+        "RS_SHIFTAZI"   : "ON",                                  
+        "RS_OUT_FILE"   : "slave_rsmp.raw",
+        "RS_OUT_FORMAT" : "ci2"          
+    },
+    "interfero" : {
+        "INT_OUT_CINT"   : "interfero.raw",       
+        "INT_MULTILOOK"  : "1 1"                                                              
+    },
+    "dem" : {
+        "CRD_IN_DEM"     : "/data/auxiliary/dem/fr_paris_lt1/srtm1_wgs84_ellipsoid.dem",       
+        "CRD_IN_FORMAT"  : "r4",                                  
+        "CRD_IN_SIZE"    : "7201 7201",        
+        "CRD_IN_DELTA"   : "0.000277777777778 0.000277777777778",    
+        "CRD_IN_UL"      : "50.0 1.0",                                  
+        "CRD_IN_NODATA"  : -32768,        
+        "CRD_OUT_FILE"   : "/dev/null",       
+        "CRD_OUT_DEM_LP" : "dem_radar_ell.raw"                                  
+    }
+}

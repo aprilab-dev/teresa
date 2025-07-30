@@ -1,0 +1,11 @@
+# 忽略某个目录（及其所有内容）
+logs/
+teresa.egg-info/
+teresa/__pycache__
+teresa/coregistion/__pycache__
+teresa/dump/__pycache__
+teresa/processor/__pycache__
+teresa/slcStack/__pycache__
+
+# 忽略临时文件
+*.pyc
