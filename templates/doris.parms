@@ -1,8 +1,8 @@
 { 
     "stack_parameters" : {
         "work_dir"    : "/data/tests/junjun",                             # processing directory
-        "data_dirs"   : "/data/tests/junjun/slc_xianfeng/bc4/test",       # list of paths to SLC data
-        "masterDate" : "20250422"                                         # leave blank to select optimal
+        "data_dirs"   : "/data/tests/junjun/coregTest/bc3/slc",       # list of paths to SLC data
+        "masterDate" : "20240404"                                         # leave blank to select optimal
     },
     "coarsecorr" : {
         "CC_METHOD"   : "magfft",        
@@ -37,13 +37,13 @@
         "INT_MULTILOOK"  : "1 1"                                                              
     },
     "dem" : {
-        "CRD_IN_DEM"     : "/data/auxiliary/dem/fr_paris_lt1/srtm1_wgs84_ellipsoid.dem",       
+        "CRD_IN_DEM"     : "/data/tests/junjun/coregTest/bc3/dem/srtm1_egm96_orthometric.dem",       
         "CRD_IN_FORMAT"  : "r4",                                  
         "CRD_IN_SIZE"    : "7201 7201",        
         "CRD_IN_DELTA"   : "0.000277777777778 0.000277777777778",    
-        "CRD_IN_UL"      : "50.0 1.0",                                  
+        "CRD_IN_UL"      : "35.0 108.0",                                  
         "CRD_IN_NODATA"  : -32768,        
         "CRD_OUT_FILE"   : "/dev/null",       
-        "CRD_OUT_DEM_LP" : "dem_radar_ell.raw"                                  
+        "CRD_OUT_DEM_LP" : "dem_radar.raw"                                  
     }
 }
