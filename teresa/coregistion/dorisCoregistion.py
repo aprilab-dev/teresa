@@ -45,6 +45,10 @@ class dorisCoregistion():
             self.doris.coregpm(date_dir)
             self.doris.resample(date_dir)
             self.doris.interfero(date_dir)
+            self.doris.comprefpha(date_dir)
+            self.doris.subtrrefpha(date_dir)
+            self.doris.comprefdem(date_dir)
+            self.doris.subtrrefdem(date_dir)
 
             global_log.end_task(success=True)
 

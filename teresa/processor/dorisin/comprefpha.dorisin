@@ -1,0 +1,33 @@
+c **********************************************************************
+c ***
+c **********************************************************************
+ c
+ c
+ comment  ___general options___
+ c
+SCREEN          info                             // level of output to standard out
+MEMORY          1000                             // MB
+BEEP            error                            // level of beeping
+OVERWRITE                                       // overwrite existing files
+BATCH                                           // non-interactive
+c LISTINPUT OFF                                 // prevents copy of this file to log
+c
+PROCESS          COMPREFPHA
+ c                                              //
+ c                                              //
+ comment  ___the general io files___            //
+ c                                              //
+LOGFILE         log.out                         // log file
+M_RESFILE       ../master/master.res            // parameter file
+S_RESFILE       slave.res                       // parameter file
+I_RESFILE       coreg.out                       // parameter file
+ c                                              // 
+ c
+ c
+ comment ___product generation___
+ c
+FE_METHOD    porbits
+FE_DEGREE    5
+FE_NPOINTS   501
+ c
+STOP

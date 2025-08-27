@@ -1,0 +1,37 @@
+c **********************************************************************
+c ***
+c **********************************************************************
+ c
+ c
+ comment  ___general options___
+ c
+SCREEN          info                             // level of output to standard out
+MEMORY          1000                             // MB
+BEEP            error                            // level of beeping
+OVERWRITE                                       // overwrite existing files
+BATCH                                           // non-interactive
+c LISTINPUT OFF                                 // prevents copy of this file to log
+c
+PROCESS          COMPREFDEM
+ c                                              //
+ c                                              //
+ comment  ___the general io files___            //
+ c                                              //
+LOGFILE         log.out                         // log file
+M_RESFILE       ../master/master.res            // parameter file
+S_RESFILE       slave.res                       // parameter file
+I_RESFILE       coreg.out                       // parameter file
+ c                                              // 
+ c
+ c
+ comment ___product generation___
+ c
+CRD_IN_DEM    /data/tests/junjun/coregTest/bc3/dem/srtm1_egm96_orthometric.dem
+CRD_IN_FORMAT    r4
+CRD_IN_SIZE    7201 7201
+CRD_IN_DELTA    0.000277777777778 0.000277777777778
+CRD_IN_UL    35.0 108.0
+CRD_IN_NODATA    -32768
+CRD_OUT_DEM_LP    dem_radar.raw
+ c
+STOP

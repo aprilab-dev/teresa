@@ -126,6 +126,84 @@ class dorisProcessor():
         
         global_log.step_end("interfero", status="SUCCESS")
 
+
+    def comprefpha(self, path):
+        global_log.step_start("comprefpha")
+        os.chdir(path)
+        if os.path.exists('coreg.out'):
+            with open('coreg.out') as coreg_out:
+                if [line for line in coreg_out if 'comp_refphase:' in line][0].split()[1] == '1':
+                    global_log.step_end("comprefpha", status="SKIPPED")
+                    return
+
+        self._doris('../dorisin/comprefpha.dorisin')
+
+        if os.path.exists('coreg.out'):
+            with open('coreg.out') as coreg_out:
+                if [line for line in coreg_out if 'comp_refphase:' in line][0].split()[1] == '0':
+                    global_log.step_end("comprefpha", status="FAIL")
+                    raise ValueError(f"comprefpha error.")
+        
+        global_log.step_end("comprefpha", status="SUCCESS")
+        
+
+    def subtrrefpha(self, path):
+        global_log.step_start("subtrrefpha")
+        os.chdir(path)
+        if os.path.exists('coreg.out'):
+            with open('coreg.out') as coreg_out:
+                if [line for line in coreg_out if 'subtr_refphase:' in line][0].split()[1] == '1':
+                    global_log.step_end("subtrrefpha", status="SKIPPED")
+                    return
+
+        self._doris('../dorisin/subtrrefpha.dorisin')
+
+        if os.path.exists('coreg.out'):
+            with open('coreg.out') as coreg_out:
+                if [line for line in coreg_out if 'subtr_refphase:' in line][0].split()[1] == '0':
+                    global_log.step_end("subtrrefpha", status="FAIL")
+                    raise ValueError(f"subtrrefpha error.")
+        
+        global_log.step_end("subtrrefpha", status="SUCCESS")
+
+    def comprefdem(self, path):
+        global_log.step_start("comprefdem")
+        os.chdir(path)
+        if os.path.exists('coreg.out'):
+            with open('coreg.out') as coreg_out:
+                if [line for line in coreg_out if 'comp_refdem:' in line][0].split()[1] == '1':
+                    global_log.step_end("comprefdem", status="SKIPPED")
+                    return
+
+        self._doris('../dorisin/comprefdem.dorisin')
+
+        if os.path.exists('coreg.out'):
+            with open('coreg.out') as coreg_out:
+                if [line for line in coreg_out if 'comp_refdem:' in line][0].split()[1] == '0':
+                    global_log.step_end("comprefdem", status="FAIL")
+                    raise ValueError(f"comprefdem error.")
+        
+        global_log.step_end("comprefdem", status="SUCCESS")
+
+    def subtrrefdem(self, path):
+        global_log.step_start("subtrrefdem")
+        os.chdir(path)
+        if os.path.exists('coreg.out'):
+            with open('coreg.out') as coreg_out:
+                if [line for line in coreg_out if 'subtr_refdem:' in line][0].split()[1] == '1':
+                    global_log.step_end("subtrrefdem", status="SKIPPED")
+                    return
+
+        self._doris('../dorisin/subtrrefdem.dorisin')
+
+        if os.path.exists('coreg.out'):
+            with open('coreg.out') as coreg_out:
+                if [line for line in coreg_out if 'subtr_refdem:' in line][0].split()[1] == '0':
+                    global_log.step_end("subtrrefdem", status="FAIL")
+                    raise ValueError(f"subtrrefdem error.")
+        
+        global_log.step_end("subtrrefdem", status="SUCCESS")
+
     
     def dem(self, path):
         global_log.step_start("dem")

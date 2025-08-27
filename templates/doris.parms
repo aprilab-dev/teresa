@@ -36,6 +36,30 @@
         "INT_OUT_CINT"   : "interfero.raw",       
         "INT_MULTILOOK"  : "1 1"                                                              
     },
+    "comprefpha" : {
+        "FE_METHOD"   : "porbits",       
+        "FE_DEGREE"  : 5,
+        "FE_NPOINTS"  : 501
+    },
+    "subtrrefpha" : {
+        "SRP_METHOD"   : "polynomial",       
+        "SRP_MULTILOOK"  : "4 4",
+        "SRP_DUMPREFPHA"  : "", 
+        "SRP_OUT_REFPHA"  : "./refpha.raw"                                                
+    },
+    "comprefdem" : {
+        "CRD_IN_DEM"     : "/data/tests/junjun/coregTest/bc3/dem/srtm1_egm96_orthometric.dem",       
+        "CRD_IN_FORMAT"  : "r4",                                  
+        "CRD_IN_SIZE"    : "7201 7201",        
+        "CRD_IN_DELTA"   : "0.000277777777778 0.000277777777778",    
+        "CRD_IN_UL"      : "35.0 108.0",                                  
+        "CRD_IN_NODATA"  : -32768, 
+        "CRD_OUT_DEM_LP" : "dem_radar.raw"                                                             
+    },
+    "subtrrefdem" : {
+        "SRD_OUT_CINT"   : "cint.minrefdem.raw",       
+        "SRD_OFFSET"  : "1 -2"                                                              
+    },
     "dem" : {
         "CRD_IN_DEM"     : "/data/tests/junjun/coregTest/bc3/dem/srtm1_egm96_orthometric.dem",       
         "CRD_IN_FORMAT"  : "r4",                                  
