@@ -16,24 +16,30 @@ class dorisCoregistion():
         """
         Run the coregistration process.
         """
+        # Step 1: Create the working directory
         # 1. 创建工作路径
         self.create_work_dir()
 
+        # Step 2: Write the parameters into the dorisin file
         # 2. 将参数写入 dorisin 文件中
         self.write_params_to_dorisin()
 
+        # Step 3: Use a Python script to read and crop domestic satellite data.
         # 3. 用 python 脚本实现 国产卫星数据的 的 读入 和 crop 操作 。
         for date in self.slc_stack.dates:
             self.read_files(date)
 
+        # Step 4: Determine the master image and copy it to the master folder.
         # 4. 确定 master ，并且把对应的复制到 master 文件夹中，
         self.get_master()
 
+        # Step 5: Execute the core processing workflow of Doris.
         # 5. 执行 doris 的核心处理流程
         for date in self.slc_stack.dates:
             if date == self.slc_stack.master_date:
                 continue
-
+            
+            # date_dir: folder corresponding to each date
             # 这里的 date_dir 是指每个日期对应的文件夹
             date_dir = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + date
 
@@ -44,6 +50,9 @@ class dorisCoregistion():
             self.doris.fine(date_dir)
             self.doris.coregpm(date_dir)
             self.doris.resample(date_dir)
+
+            # interferogram
+            # 干涉图
             self.doris.interfero(date_dir)
             self.doris.comprefpha(date_dir)
             self.doris.subtrrefpha(date_dir)
@@ -52,6 +61,7 @@ class dorisCoregistion():
 
             global_log.end_task(success=True)
 
+        # Step 6: Generate the DEM file
         # 6. 生成 dem 文件
         global_log.start_dem()
 
@@ -64,28 +74,34 @@ class dorisCoregistion():
         """
         Create the working directory for coregistration.
         """
+        # Create the working directory
         # 生成工作目录
         work_dir = self.slc_stack.work_dir + os.sep + "workspace"
         if not os.path.exists(work_dir):
             os.makedirs(work_dir)
         
+        # Create the DEM directory
         # 生成 dem 目录
         dem_path = work_dir + os.sep + "dem"
         if not os.path.exists(dem_path):
             os.makedirs(dem_path)
 
+        # Create the master directory
         # 生成 master 目录
         master_path = work_dir + os.sep + "master"
         if not os.path.exists(master_path):
             os.makedirs(master_path)
 
+        # Create directories for all dates
         # 生成所有 date 的目录
         for date in self.slc_stack.dates:
+            # The working directory corresponding to each date
             # 每个日期对应的工作目录
             date_path = work_dir + os.sep + date
             if not os.path.exists(date_path):
                 os.makedirs(date_path)
-
+            
+            # Create symbolic links for meta and data files
             # 创建 meta 和 数据文件 的软连接
             src_meta = self.slc_stack.meta_path_map[date]
             dst_meta = date_path + os.sep + os.path.basename(src_meta)
@@ -97,6 +113,7 @@ class dorisCoregistion():
             if not os.path.exists(dst_data):
                 os.symlink(src_data, dst_data)
         
+        # Create the dorisin directory
         # 生成 dorisin 目录
         dorisin_path = work_dir + os.sep + "dorisin"
         if not os.path.exists(dorisin_path):
@@ -115,6 +132,7 @@ class dorisCoregistion():
             for param, value in params.items():
                 with open(dorisin_path, 'r', encoding='utf-8') as f:
                     lines = f.readlines()
+                # Determine whether the parameters need to be rewritten
                 # 确定参数是否是需要重新写入
                 updated_lines = []
                 modified = False
@@ -124,6 +142,7 @@ class dorisCoregistion():
                         modified = True
                     else:
                         updated_lines.append(line)
+                # Write parameter values
                 # 写入参数值
                 if modified:
                     with open(dorisin_path, 'w', encoding='utf-8') as f:
@@ -136,11 +155,15 @@ class dorisCoregistion():
         Parameters:
             date_path (str): The path to the date directory.
         """
+        # Convert to a string in the “2024-07-18” format
         # 转为 "2024-07-18" 格式字符串
         dt = datetime.strptime(date, "%Y%m%d")
         formatted_date = dt.strftime("%Y-%m-%d")
         global_log.start_read(formatted_date)
 
+        # Two parameters: one is data, the path to the data; the other is date, 
+        # the working directory corresponding to the date. 
+        # They differ by only one letter—do not confuse them. 
         # 两个参数，一个是 data 数据的路径，一个是 date 日期对应的工作路径，只差一个字母，不要混淆
         date_dir = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + date
 
@@ -173,11 +196,13 @@ class dorisCoregistion():
         if not os.path.exists(master_data_path):
             raise FileNotFoundError(f"Master data file not found: {master_data_path}")
         
+        # Generate symbolic links for data files in the master directory
         # 生成 master 的数据文件软连接
         master_symlink_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "master" + os.sep + "image.raw"
         if not os.path.exists(master_symlink_path):
             os.symlink(master_data_path, master_symlink_path)
 
+        # Generate the res files in the master directory 
         # 生成 master 的 res 文件
         master_res_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "master" + os.sep + "master.res"
         date_res_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + self.slc_stack.master_date + os.sep + "slave.res"
@@ -186,6 +211,7 @@ class dorisCoregistion():
                 for line in open(date_res_path):
                     master_res.write(line.replace('image.raw', '../master/image.raw'))
         
+        # Generate the res files for slavedem 
         # 生成 slavedem 的 res 文件
         slavedem_res_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "dem" + os.sep + "slavedem.res"
         if not os.path.exists(slavedem_res_path):
@@ -201,6 +227,7 @@ class dorisCoregistion():
         Returns:
             dict: A dictionary containing the task information.
         """
+        # Convert to a string in the “2024-07-18” format
         # 转为 "2024-07-18" 格式字符串
         dt = datetime.strptime(date, "%Y%m%d")
         formatted_date = dt.strftime("%Y-%m-%d")
