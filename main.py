@@ -4,7 +4,6 @@ import sys
 from teresa.inteface import createSlcStack
 from teresa.inteface import createCoregistion
 
-
 def coregister(parms_path):
     """
     Coregistrating a stack of SAR SLC images from source directory
