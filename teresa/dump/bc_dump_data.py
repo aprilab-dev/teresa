@@ -14,7 +14,7 @@ from datetime import datetime
 # from SarSpectrum import SarSpectrum
 
 """
-BC4_DUMP_DATA() reads the BC4 format SLC data, and write to disk the
+BC3_DUMP_DATA() reads the BC3 format SLC data, and write to disk the
 DORIS-compatale binary format for DORIS processing.
 """
 
@@ -23,7 +23,7 @@ warnings.filterwarnings(
     "ignore", category=rasterio.errors.NotGeoreferencedWarning)  # type: ignore
 
 
-def bc4_to_data(
+def bc3_to_data(
     filein: str,
     fileout: str,
     l0: int = None,
@@ -57,7 +57,7 @@ def bc4_to_data(
     return lN - l0 + 1, pN - p0 + 1
 
 
-def bc4_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
+def bc3_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
 
     fileout = "image.raw"
 
@@ -102,9 +102,9 @@ def bc4_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
     return True
 
 
-def bc4_dump_data_usage():
+def bc3_dump_data_usage():
     print(
-        "\nUsage: python3 bc4_dump_data_usage.py inputfile outputfile l0 lN p0 pN"
+        "\nUsage: python3 bc3_dump_data_usage.py inputfile outputfile l0 lN p0 pN"
     )  # nopep8
     print("  where inputfile        is the input filename")
     print("        outputfile       is the output filename")
@@ -114,13 +114,15 @@ def bc4_dump_data_usage():
     print("        pN               is the last range pixel")
 
 
-def bc4_dump_data(source_data_path, work_dir):
+def bc_dump_data(source_data_path, work_dir):
 
     target_data_path = os.path.join(work_dir, "image.raw")
     l0, lN, p0, pN = None, None, None, None  # type:ignore
 
     # read LT1 file
-    az_lines, ra_samples = bc4_to_data(source_data_path, target_data_path, l0, lN, p0, pN)
+    az_lines, ra_samples = bc3_to_data(source_data_path, target_data_path, l0, lN, p0, pN)
+
+    # ------------------ Plot is Optional -----------------------------------
 
     if l0 is None and lN is None and p0 is None and pN is None:
         l0: int = 1
@@ -129,4 +131,4 @@ def bc4_dump_data(source_data_path, work_dir):
         pN: int = ra_samples
 
     res_file = os.path.join(work_dir, "slave.res")
-    bc4_to_res(res_file, l0, lN, p0, pN)  # write result file
+    bc3_to_res(res_file, l0, lN, p0, pN)  # write result file

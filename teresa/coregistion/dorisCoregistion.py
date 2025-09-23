@@ -118,6 +118,7 @@ class dorisCoregistion():
             os.makedirs(dorisin_path)
             cp_cmd = f"cp ./teresa/processor/dorisin/*.dorisin {dorisin_path}"
             os.system(cp_cmd)
+            # ! 检查一下是是否 运行失败，…… 只有文件夹，里面没有 cp 成功 doris 文件，除非删掉，否则就会卡bug
 
     def write_params_to_dorisin(self):
         """
@@ -196,7 +197,7 @@ class dorisCoregistion():
         
         # Generate symbolic links for data files in the master directory
         # 生成 master 的数据文件软连接
-        master_symlink_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "master" + os.sep + "image.raw"
+        master_symlink_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "master" + os.sep + "image_crop.raw"
         if not os.path.exists(master_symlink_path):
             os.symlink(master_data_path, master_symlink_path)
 
@@ -207,7 +208,7 @@ class dorisCoregistion():
         if not os.path.exists(master_res_path):
             with open(master_res_path, 'w') as master_res:
                 for line in open(date_res_path):
-                    master_res.write(line.replace('image.raw', '../master/image.raw'))
+                    master_res.write(line.replace('image.raw', '../master/image_crop.raw'))
         
         # Generate the res files for slavedem 
         # 生成 slavedem 的 res 文件

@@ -72,7 +72,7 @@ def reverse_time(cur_time: datetime):
     return reversed_time
 
 
-class BC4:
+class BC:
     """Implementing the S-1 Format for FC1 reader.
 
     author: Yuxiao QIN
@@ -82,6 +82,19 @@ class BC4:
     def __init__(self):
         """[summary]"""
         self.meta = {}  # meta file, empty dictionary
+
+    def locate_meta(self, directory: str):
+        """locate the XML file in the directory.
+
+        Parameters
+        ----------
+        directory : str
+            [description]
+        """
+        pattern = "bc3-sm-slc*.xml"
+        self.meta["path"] = locate(pattern, directory)
+
+        return self
 
     def read_meta(self):
         """Formatting the meta."""
@@ -188,7 +201,7 @@ class BC4:
         )
 
         container["Datafile"] = os.path.basename(
-            locate("bc4*slc*.tiff", os.path.dirname(self.meta["path"]))
+            locate("bc*slc*.tiff", os.path.dirname(self.meta["path"]))
         )
 
         # 2-way Slant Range Time
@@ -237,8 +250,8 @@ class BC4:
         container["SAR_PROCESSOR"] = "HL"
         container["Logical volume generating facility"] = "HL"
 
-        container["Product type specifier"] = "BC4"
-        container["Sensor platform mission identifer"] = "BC4"
+        container["Product type specifier"] = "BC3"
+        container["Sensor platform mission identifer"] = "BC3"
 
         self.meta.update(container)
 
@@ -283,7 +296,7 @@ class BC4:
             "Number_of_pixels_original",
         )
 
-        print("\nbc4_dump_header2doris.py v1,0, doris software, 2024\n")
+        print("\nbc3_dump_header2doris.py v1,0, doris software, 2024\n")
         print("**************************************************************")
         print("*_Start_readfiles:")
         print("**************************************************************")
@@ -365,14 +378,14 @@ class BC4:
         print("Version         : v0.1.0")
         print("Release Date    : 2025-07-31")
         print("")
-        print("Developed by    : APRILab(Automated Phase Reconstruction and Interferometry Lab)")
+        print("Developed by    : APRILab (Automated Phase Reconstruction and Interferometry Lab)")
         print("Affiliation     : 西北工业大学 电子信息学院")
         print("Website         : https://github.com/aprilab-dev")
         print("Contact Email   : yuxiao.qin@nwpu.edu.cn")
         print("")
         print("File Generated  : ", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         print("File Type       : SAR Registration Metadata")
-        print("Input Mission   : BC4")
+        print("Input Mission   : fc1")
         print("")
         print("Description     : 本文件标记了配准处理过程，SAR 图像的基本信息等。")
         print("")
@@ -397,13 +410,13 @@ class BC4:
         print("")
         print("-----------------------------------------------------------")
 
-def bc4_dump_header2doris(source_meta_path, work_dir):
+def bc_dump_header2doris(source_meta_path, work_dir):
 
     result_file = os.path.join(work_dir, "slave.res")
-    bc4 = BC4()
+    bc = BC()
 
-    bc4.meta["path"] = source_meta_path
+    bc.meta["path"] = source_meta_path
     with open(result_file, "w") as f:
         with redirect_stdout(f):
-            bc4.usage()
-            bc4.read_meta().export2res()
+            bc.usage()
+            bc.read_meta().export2res()

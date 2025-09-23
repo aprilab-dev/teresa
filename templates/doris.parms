@@ -1,12 +1,12 @@
 { 
     "stack_parameters" : {
         "work_dir"    : "/data/tests/junjun",                             # processing directory
-        "data_dirs"   : "/data/tests/junjun/coregTest/bc3/slc",       # list of paths to SLC data
-        "masterDate" : "20240404"                                         # leave blank to select optimal
+        "data_dirs"   : "/data/tests/junjun/fc1",       # list of paths to SLC data
+        "masterDate" : "20250505"                                         # leave blank to select optimal
     },
     "coarsecorr" : {
         "CC_METHOD"   : "magfft",        
-        "CC_ACC"      : 8000,                              
+        "CC_ACC"      : 8000,                             
         "CC_NWIN"     : 21,   
         "CC_WINSIZE"  : "512 512",                              
         "CC_INITOFF " : "orbit"          
