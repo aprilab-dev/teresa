@@ -72,26 +72,26 @@ class dorisCoregistion():
         """
         Create the working directory for coregistration.
         """
-        # Create the working directory
-        # 生成工作目录
+        # Step 1: Create the working directory
+        # 1. 生成工作目录
         work_dir = self.slc_stack.work_dir + os.sep + "workspace"
         if not os.path.exists(work_dir):
             os.makedirs(work_dir)
         
-        # Create the DEM directory
-        # 生成 dem 目录
+        # Step 2: Create the DEM directory
+        # 2. 生成 dem 目录
         dem_path = work_dir + os.sep + "dem"
         if not os.path.exists(dem_path):
             os.makedirs(dem_path)
 
-        # Create the master directory
-        # 生成 master 目录
+        # Step 3: Create the master directory
+        # 3. 生成 master 目录
         master_path = work_dir + os.sep + "master"
         if not os.path.exists(master_path):
             os.makedirs(master_path)
 
-        # Create directories for all dates
-        # 生成所有 date 的目录
+        # Step 4: Create directories for all dates
+        # 4. 生成所有 date 的目录
         for date in self.slc_stack.dates:
             # The working directory corresponding to each date
             # 每个日期对应的工作目录
@@ -111,14 +111,24 @@ class dorisCoregistion():
             if not os.path.exists(dst_data):
                 os.symlink(src_data, dst_data)
         
-        # Create the dorisin directory
-        # 生成 dorisin 目录
-        dorisin_path = work_dir + os.sep + "dorisin"
-        if not os.path.exists(dorisin_path):
-            os.makedirs(dorisin_path)
-            cp_cmd = f"cp ./teresa/processor/dorisin/*.dorisin {dorisin_path}"
-            os.system(cp_cmd)
-            # ! 检查一下是是否 运行失败，…… 只有文件夹，里面没有 cp 成功 doris 文件，除非删掉，否则就会卡bug
+        # Step 5: Create the dorisin directory
+        # 5. 生成 dorisin 目录，并且将 dorisin 文件复制进去
+        src_dorisin_dir = work_dir + os.sep + "dorisin"
+        dst_dorisin_dir = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "dorisin"
+        if not os.path.exists(dst_dorisin_dir):
+            os.makedirs(dst_dorisin_dir)
+
+        # 用 os.walk 递归搜索所有 .dorisin 文件
+        dorisin_files = []
+        for root, dirs, files in os.walk(src_dorisin_dir):
+            for file in files:
+                if file.endswith(".dorisin"):
+                    dorisin_files.append(os.path.join(root, file))
+
+        assert dorisin_files, "No .dorisin files could be found in teresa/processor/dorisin/."
+        for file in dorisin_files:
+            dst_file = os.path.join(dst_dorisin_dir, os.path.basename(file))
+            shutil.copy(file, dst_file)
 
     def write_params_to_dorisin(self):
         """
@@ -215,6 +225,20 @@ class dorisCoregistion():
         slavedem_res_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "dem" + os.sep + "slavedem.res"
         if not os.path.exists(slavedem_res_path):
             shutil.copyfile(master_res_path, slavedem_res_path)
+            
+        # 适配 depsi2 的读入
+        # 1. 在 workspace 路径下，生成一个 dorisstack 文件，内容是 master_date
+        file_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + +  "dorisstack"
+        with open(file_path, "w") as f:
+            f.write(self.slc_stack.master_date)
+        # 2. 在 workspace 路径下，复制一份 master 数据文件的软连接和 res 文件
+        depsi_master_symlink_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "image_crop.raw"
+        if not os.path.exists(depsi_master_symlink_path):
+            os.symlink(master_data_path, depsi_master_symlink_path)
+        depsi_master_res_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "master.res"
+        if not os.path.exists(depsi_master_res_path):
+            shutil.copyfile(master_res_path, depsi_master_res_path)
+
 
     def get_task_info(self, date):
         """
