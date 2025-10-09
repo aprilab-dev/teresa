@@ -113,7 +113,7 @@ class dorisCoregistion():
         
         # Step 5: Create the dorisin directory
         # 5. 生成 dorisin 目录，并且将 dorisin 文件复制进去
-        src_dorisin_dir = work_dir + os.sep + "dorisin"
+        src_dorisin_dir = work_dir + os.sep + "workspace" + os.sep + "dorisin"
         dst_dorisin_dir = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "dorisin"
         if not os.path.exists(dst_dorisin_dir):
             os.makedirs(dst_dorisin_dir)
