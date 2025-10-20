@@ -113,7 +113,8 @@ class dorisCoregistion():
         
         # Step 5: Create the dorisin directory
         # 5. 生成 dorisin 目录，并且将 dorisin 文件复制进去
-        src_dorisin_dir = work_dir + os.sep + "workspace" + os.sep + "dorisin"
+        # teresa/processor
+        src_dorisin_dir = os.getcwd() + os.sep + "teresa" + os.sep + "processor" + os.sep + "dorisin"
         dst_dorisin_dir = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "dorisin"
         if not os.path.exists(dst_dorisin_dir):
             os.makedirs(dst_dorisin_dir)
@@ -135,7 +136,7 @@ class dorisCoregistion():
         Write the parameters to the dorisin file.
         """
         for dorisin, params in self.params.items():
-            if dorisin == "stack_parameters":
+            if dorisin == "stack_parameters" or dorisin == "doris_path":
                 continue
             dorisin_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "dorisin" + os.sep + dorisin + ".dorisin"
             for param, value in params.items():

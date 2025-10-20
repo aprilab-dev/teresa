@@ -1,8 +1,9 @@
-{ 
+{   
+    "doris_path" :  "/home/junjun/doris/doris/src/doris",
     "stack_parameters" : {
-        "work_dir"    : "/data/tests/junjun",                             # processing directory
-        "data_dirs"   : "/data/tests/junjun/fc1",       # list of paths to SLC data
-        "masterDate" : "20250505"                                         # leave blank to select optimal
+        "work_dir"    : "/data/tests/junjun",                             
+        "data_dirs"   : "/data/tests/junjun/slc_xianfeng",      
+        "masterDate" : "20250429"                                         
     },
     "coarsecorr" : {
         "CC_METHOD"   : "magfft",        
@@ -12,7 +13,7 @@
         "CC_INITOFF " : "orbit"          
     },
     "fine" : {
-        "FC_METHOD"   : "oversample",         
+        "FC_METHOD"   : "oversample",
         "FC_NWIN"     : 6000,                                 
         "FC_WINSIZE"  : "128 128",        
         "FC_ACC"      : "32 32",        
