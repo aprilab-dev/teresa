@@ -229,7 +229,7 @@ class dorisCoregistion():
             
         # 适配 depsi2 的读入
         # 1. 在 workspace 路径下，生成一个 dorisstack 文件，内容是 master_date
-        file_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + +  "dorisstack"
+        file_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep +  "dorisstack"
         with open(file_path, "w") as f:
             f.write(self.slc_stack.master_date)
         # 2. 在 workspace 路径下，复制一份 master 数据文件的软连接和 res 文件
