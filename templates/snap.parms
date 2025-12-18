@@ -1,17 +1,17 @@
 { 
 "SNAP_parameters" : {
-    "gptPath"    : "/home/junjun/esa-snap/gpt",       # path to SNAP gpt
-    "pol"        : "VV",                              # path to G-MaPIT
+    "gptPath"    : "/home/junjun/esa-snap/bin/gpt",       # path to SNAP gpt
+    "pol"        : "VV",                                 # path to G-MaPIT
     "cache_size" : 32,                                  # [MB]
     "nr_proc"    : 12                                   # physical 
 },
 "Stack_parameters" : {
-    "work_dir" : '/data/tests/junjun/', # processing directory
-    "data_dirs" : ('/data/tests/junjun/ASC142',),       # list of paths to SLC data
-    "pol" : 'vv'
-    "min_lon" : '116.40',                          # Specify  AOI corners:
-    "max_lon" : '116.57',
-    "min_lat" : '39.90',
-    "max_lat" : '40.02',
-    "masterDate" : '20220717'                      # leave blank to select optimal
+    "work_dir" : "/data/test/junjun/mianyang/s1/test_teresa_snap", # processing directory
+    "data_dirs" : "/data/test/junjun/mianyang/s1/test_teresa_snap/data",       # list of paths to SLC data
+    "pol" : 'VV',
+    "min_lon" : '104.64',                          # Specify  AOI corners:
+    "max_lon" : '104.84',
+    "min_lat" : '31.39',
+    "max_lat" : '31.56',
+    "masterDate" : '20241109'                      # leave blank to select optimal
 }}

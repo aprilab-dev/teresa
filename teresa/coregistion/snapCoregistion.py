@@ -1,6 +1,13 @@
-import logging
-from teresa.processor.snapProcessor import snapProcessor
+import os
+import shutil
+import zipfile
+import fnmatch
 from distutils.dir_util import copy_tree
+import xml.etree.ElementTree as ET
+
+from teresa.utils.TeresaLog import global_log
+from teresa.processor.snapProcessor import snapProcessor
+
 
 class snapCoregistion(object):
     def __init__(self, params, slc_stack):
@@ -16,20 +23,17 @@ class snapCoregistion(object):
         self.slc_stack = slc_stack
 
         # Initialize SNAP processor
-        self.snap      = snapProcessor(self.params)
+        self.snap = snapProcessor(self.params)
 
         # Workspace directories
         self.work_dir = self.slc_stack.work_dir + os.sep + "workspace"
         self.temp_dir = self.work_dir + os.sep + "temp"
 
         # DEM creation flag
-        self.create_dem = True
+        self.if_create_dem = True
 
         # Supported IPF version for processing
         self.IPF_GOOD_VERSION = '002.43'
-
-        # File pattern for master images
-        self.master_file_glob = '[iq]_'+2*'[a-zA-Z]'+'_mst_'+2*'[0-9]'+ 3*'[a-zA-Z]'+4*'[0-9]'+'.img'
     
     
     def run(self):
@@ -43,29 +47,36 @@ class snapCoregistion(object):
             4. Clean up temporary files.
         """
         # 1. Create working directory
+        print('Creating working directory at %s ...', self.work_dir)
         self.create_work_dir()
 
         # 2. Preprocess master SLC image (EAP calibration)
+        print('Preprocessing master SLC date %s ...', self.slc_stack.master_date)
         master_date = self.slc_stack.master_date
         self.preprocess_slc_date(master_date)
 
         # 3. Coregister each slave SLC image
+        print('Starting coregistration of slave SLC images ...')
         for slave_date in self.slc_stack.slave_dates:
             # 3.1 Skip already coregistered slave dates
+            print('Coregistering slave date %s ...', slave_date)
             merged_dim_path = os.path.join(self.work_dir, slave_date, 'merged.dim')
             if os.path.exists(merged_dim_path):
-                logger.info('Slave date %s already coregistered, skipping...', slave_date)
+                print('Slave date %s already coregistered, skipping...', slave_date)
                 continue
 
             # 3.2 Preprocess slave SLC image (EAP calibration)
+            print('preprocess_slc_date ')
             self.preprocess_slc_date(slave_date)
 
             # 3.3 Coregister the slave image (subswaths + merge)
+            print('=========================Coregistering slave date %s ...', slave_date)
             self.coregister_single_image(slave_date)
+            print('=========================Coregistration of slave date %s completed.', slave_date)
 
         # 4. Clean up temporary directory
         if os.path.exists(self.temp_dir):
-            logger.info('Cleaning up temporary coregistration data in %s', self.temp_dir)
+            print('Cleaning up temporary coregistration data in %s', self.temp_dir)
             shutil.rmtree(self.temp_dir)
     
     def coregister_single_image(self, slave_date: str):
@@ -88,6 +99,7 @@ class snapCoregistion(object):
 
         for subswath_idx in range(1, 4):
             # Coregister the current subswath
+            print('Coregistering subswath IW%d for slave date %s ...', subswath_idx, slave_date)
             self.coregister_subswath(slave_date, subswath_idx)
             subswath_output = os.path.join(
                 self.temp_dir, slave_date, 'subswaths', f'{slave_date}_IW{subswath_idx}.dim'
@@ -95,9 +107,11 @@ class snapCoregistion(object):
             merge_kwargs[f'input_product_subswath_{subswath_idx}'] = subswath_output
 
         # 2. Merge coregistered subswaths
+        print('Merging subswaths for slave date %s ...', slave_date)    
         self.snap.merge_subswaths(**merge_kwargs)
 
         # 3. Copy merged products to work directory
+        print('Copying merged products to work directory for slave date %s ...', slave_date)
         temp_data_path = os.path.join(self.temp_dir, slave_date, 'merged.data')
         out_data_path  = os.path.join(self.work_dir, slave_date, 'merged.data')
         copy_tree(temp_data_path, out_data_path)
@@ -107,12 +121,14 @@ class snapCoregistion(object):
         shutil.copyfile(temp_dim_path, out_dim_path)
 
         # 4. Generate DEM if requested 
-        # TODO: 
-        if self.create_dem:
-            self._create_dem(dates_slv[create_dem_idx])
-            self.create_dem = False
+        print('Generating DEM for slave date %s ...', slave_date)
+        print("self.if_create_dem:", self.if_create_dem)
+        if self.if_create_dem:
+            self.create_dem(slave_date)
+            self.if_create_dem = False
 
         # 5. Clean up temporary files
+        print('Cleaning up temporary coregistration data for slave date %s ...', slave_date)
         temp_slave_dir = os.path.join(self.temp_dir, slave_date)
         if os.path.exists(temp_slave_dir):
             print('Cleaning up temporary coregistration data for slave date %s', slave_date)
@@ -186,7 +202,7 @@ class snapCoregistion(object):
         if has_multi_subswath_master and has_multi_subswath_slave:
             # Multi-subswa​th master  → Multi-subswa​th slave
             self.snap.coregister_subswath(
-                subswath=subswath,
+                subswath='IW{}'.format(subswath),
                 pol=self.slc_stack.pol,
                 input_slave_products=input_slave_products,
                 input_master_products=input_master_products,
@@ -197,7 +213,7 @@ class snapCoregistion(object):
         if has_single_subswath_master and has_multi_subswath_slave:
             # Single-subswa​th master → Multi-subswa​th slave
             self.snap.coregister_subswath_single_slave_slice(
-                subswath=subswath,
+                subswath='IW{}'.format(subswath),
                 pol=self.slc_stack.pol,
                 input_slave_products=input_slave_products,
                 input_master_products=input_master_products,
@@ -208,7 +224,7 @@ class snapCoregistion(object):
         if has_multi_subswath_master and has_single_subswath_slave:
             # Multi-subswa​th master  → Single-subswa​th slave
             self.snap.coregister_subswath_single_master_slice(
-                subswath=subswath,
+                subswath='IW{}'.format(subswath),
                 pol=self.slc_stack.pol,
                 input_slave_products=input_slave_products,
                 input_master_products=input_master_products,
@@ -219,16 +235,35 @@ class snapCoregistion(object):
         if has_single_subswath_master and has_single_subswath_slave:
             # Single-subswa​th master → Single-subswa​th slave
             self.snap.coregister_subswath_single_slice(
-                subswath=subswath,
+                subswath='IW{}'.format(subswath),
                 pol=self.slc_stack.pol,
                 input_slave_products=input_slave_products,
                 input_master_products=input_master_products,
                 output_product=output_product,
                 dem_name=dem_name
             )
-        
-
     
+    def create_dem(self, slave_date):
+
+        dem_out_path = os.path.join(self.work_dir, "dem", 'merged_with_dem.dim')
+        if os.path.exists(dem_out_path):
+            print('DEM for slave date %s already created, skipping...', slave_date)
+            return
+
+        input_product = os.path.join(self.temp_dir, slave_date, 'merged.dim')
+        output_product = os.path.join(self.temp_dir, 'dem', 'merged_with_dem.dim')
+        dem_name = 'SRTM 1Sec HGT'
+        self.snap.add_elevation_band(
+            input_product=input_product,
+            output_product=output_product,  
+            dem_name=dem_name
+        )
+
+        dem_temp_dir = os.path.join(self.temp_dir, 'dem')
+        copy_tree(dem_temp_dir, dem_out_dir)
+        shutil.rmtree(dem_temp_dir)
+
+
     def preprocess_slc_date(self, date: str):
         """
         Preprocess all SLC images for a given date by applying EAP phase calibration if necessary.
@@ -283,6 +318,9 @@ class snapCoregistion(object):
         dem_dir = os.path.join(self.work_dir, "dem")
         if not os.path.exists(dem_dir):
             os.makedirs(dem_dir)
+        dem_temp_dir = os.path.join(self.temp_dir, "dem")
+        if not os.path.exists(dem_temp_dir):
+            os.makedirs(dem_temp_dir)
 
         # 3. Create directories for each date
         for date in self.slc_stack.dates:
@@ -295,3 +333,15 @@ class snapCoregistion(object):
             date_temp_dir = os.path.join(self.temp_dir, date)
             if not os.path.exists(date_temp_dir):
                 os.makedirs(date_temp_dir)
+
+    def find_ipf_version(self, file_name):
+        zf = zipfile.ZipFile(file_name, 'r')
+        ns = {"safe": "http://www.esa.int/safe/sentinel-1.0"}
+        for zf_file_path in fnmatch.filter(zf.namelist(), '*manifest.safe'):
+            metadata = zf.read(zf_file_path)
+            tree = ET.fromstring(metadata)
+            for el in tree.findall(".//safe:software", ns):
+                if el.attrib["name"] == "Sentinel-1 IPF":
+                    version = el.attrib["version"]
+                    return version
+        raise ValidationError("IPF version not found")

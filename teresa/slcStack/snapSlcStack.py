@@ -29,19 +29,15 @@ class snapSlcStack():
         """
         # 1. 初始化 self.data_path_map
         # key 是日期， value 是日期对应的数据文件路径列表
-        slc_zip_files = []
-        for file_name in os.listdir(self.data_dirs):
-            if file_name.endswith(".zip"):
-                slc_zip_files.append(file_name)
-        
-        for file_name in slc_zip_files:
-            date = file_name[17:25]   # 提取日期
-            self.dates.append(date)
-            files_path = os.path.join(self.data_dirs, file_name)
-            self.data_path_map.setdefault(date, []).append(files_path)
+        for dirpath, _, filenames in os.walk(os.path.abspath(self.data_dirs)):
+            for filename in filenames:
+                if filename.endswith(".zip"):
+                    date = filename[17:25]   # 提取日期
+                    self.dates.append(date)
+                    full_path = os.path.join(dirpath, filename)
+                    self.data_path_map.setdefault(date, []).append(full_path)
         
         # 2. 生成 wkt
-        self.wkt = self._generate_wkt(self.min_lon, self.max_lon, self.min_lat, self.max_lat)
         self.wkt = (f"POLYGON (({self.min_lon} {self.min_lat}, "
                                 f"{self.max_lon} {self.min_lat}, "
                                 f"{self.max_lon} {self.max_lat}, "
