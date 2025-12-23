@@ -260,6 +260,7 @@ class snapCoregistion(object):
         )
 
         dem_temp_dir = os.path.join(self.temp_dir, 'dem')
+        dem_out_dir = os.path.join(self.work_dir, 'dem')
         copy_tree(dem_temp_dir, dem_out_dir)
         shutil.rmtree(dem_temp_dir)
 
