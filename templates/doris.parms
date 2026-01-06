@@ -1,9 +1,9 @@
 {   
     "doris_path" :  "/home/junjun/software/doris/doris",
     "stack_parameters" : {
-        "work_dir"    : "/data/test/junjun/coregTest/bc3",                             
-        "data_dirs"   : "/data/test/junjun/coregTest/bc3/slc",      
-        "masterDate" : "20240404"                                         
+        "work_dir"    : "/data/test/junjun/bc_beijing",                             
+        "data_dirs"   : "/data/test/junjun/bc_beijing/beijing_point2_insar",      
+        "masterDate" : "20240108"                                         
     },
     "coarsecorr" : {
         "CC_METHOD"   : "magfft",        

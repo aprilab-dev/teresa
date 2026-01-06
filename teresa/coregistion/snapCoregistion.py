@@ -8,9 +8,6 @@ import xml.etree.ElementTree as ET
 from teresa.utils.TeresaLog import global_log
 from teresa.processor.snapProcessor import snapProcessor
 
-from .snap_processor import ValidationError
-
-
 class snapCoregistion(object):
     def __init__(self, params, slc_stack):
         """

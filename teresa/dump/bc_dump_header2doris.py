@@ -147,6 +147,8 @@ class BC:
             # Geolocation
             "latitude":"geolocationGrid//geolocationGridPointList//latitude",
             "longitude":"geolocationGrid//geolocationGridPoint//longitude",
+            # Look Side
+            "Look Side": "imageAnnotation//imageInformation//look_side"
         }
 
         # get variables and parameters from xml
@@ -165,14 +167,19 @@ class BC:
             elif value.endswith(".xml"):  # metafile
                 container[key] = os.path.basename(value)
             else:
+                # if value == "look_side":
+                #     print("doris_key is ", root.findall(value)) 
                 for item in root.findall(value):
-                    # for item in root.findall(value):
                     if key.startswith("Orbit "):  # space is necessary here.
                         container[key].append(item.text)
                     elif key.endswith("tude") and key.startswith("l"): # latitude & longitude
                         container[key].append(item.text)
                     else:
+                        # print("doris_key is ", key)
+                        # print("bc3_key is", value)
                         container[key] = item.text
+
+            
 
         # Two entries that have to be manually updated
         container["Orbit_n_pts"] = len(container["Orbit Time"])
@@ -239,7 +246,7 @@ class BC:
 
         # update the time format
         cur_time = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
-        if container["look_side"] == "left":
+        if container["Look Side"] == "left":
             cur_time = datetime.strptime(container["Last_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
             cur_time = reverse_time(cur_time)  # reverse time to "fake" right looking
         # 
