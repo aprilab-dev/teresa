@@ -6,12 +6,12 @@
     "nr_proc"    : 12                                   # physical 
 },
 "Stack_parameters" : {
-    "work_dir" : "/data/test/junjun/mianyang/s1/test_teresa_snap", # processing directory
-    "data_dirs" : "/data/test/junjun/mianyang/s1/test_teresa_snap/data",       # list of paths to SLC data
+    "work_dir" : "/data/test/junjun/super_dataset/amsterdam", # processing directory
+    "data_dirs" : "/data/test/junjun/super_dataset/amsterdam/s1",       # list of paths to SLC data
     "pol" : 'VV',
     "min_lon" : '104.64',                          # Specify  AOI corners:
     "max_lon" : '104.84',
     "min_lat" : '31.39',
     "max_lat" : '31.56',
-    "masterDate" : '20241109'                      # leave blank to select optimal
+    "masterDate" : '20210109'                      # leave blank to select optimal
 }}

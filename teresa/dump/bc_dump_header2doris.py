@@ -239,9 +239,10 @@ class BC:
 
         # update the time format
         cur_time = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
-        if container["Direction"] == "ASCENDING":
+        if container["look_side"] == "left":
             cur_time = datetime.strptime(container["Last_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
             cur_time = reverse_time(cur_time)  # reverse time to "fake" right looking
+        # 
         container["First_pixel_azimuth_time (UTC)"] = (
             datetime.strftime(cur_time, "%d-%b-%Y %H:%M:%S.%f")
         )
