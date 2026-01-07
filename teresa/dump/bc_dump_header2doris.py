@@ -229,6 +229,14 @@ class BC:
             container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"], *_
         ) = container["Doppler_Coef"].split()
 
+        cur_time = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
+        if container["Look Side"] == "left":
+            cur_time = datetime.strptime(container["Last_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
+            cur_time = reverse_time(cur_time)  # reverse time to "fake" right looking
+        container["First_pixel_azimuth_time (UTC)"] = (
+            datetime.strftime(cur_time, "%d-%b-%Y %H:%M:%S.%f")
+        )
+        
         # manually update
         container["SAR_PROCESSOR"] = "HL"
         container["Logical volume generating facility"] = "HL"
