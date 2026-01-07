@@ -167,16 +167,12 @@ class BC:
             elif value.endswith(".xml"):  # metafile
                 container[key] = os.path.basename(value)
             else:
-                # if value == "look_side":
-                #     print("doris_key is ", root.findall(value)) 
                 for item in root.findall(value):
                     if key.startswith("Orbit "):  # space is necessary here.
                         container[key].append(item.text)
                     elif key.endswith("tude") and key.startswith("l"): # latitude & longitude
                         container[key].append(item.text)
                     else:
-                        # print("doris_key is ", key)
-                        # print("bc3_key is", value)
                         container[key] = item.text
 
             
@@ -232,27 +228,6 @@ class BC:
             container["Xtrack_f_DC_linear (Hz/s, early edge)"],
             container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"], *_
         ) = container["Doppler_Coef"].split()
-
-        # # First Line UTC Time
-        # container["First_pixel_azimuth_time (UTC)"] = (
-        #     datetime.strftime(
-        #         datetime.strptime(
-        #             container["First_pixel_azimuth_time (UTC)"],
-        #             "%Y-%m-%dT%H:%M:%S.%f"
-        #         ),
-        #         "%d-%b-%Y %H:%M:%S.%f"
-        #     )
-        # )
-
-        # update the time format
-        cur_time = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
-        if container["Look Side"] == "left":
-            cur_time = datetime.strptime(container["Last_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
-            cur_time = reverse_time(cur_time)  # reverse time to "fake" right looking
-        # 
-        container["First_pixel_azimuth_time (UTC)"] = (
-            datetime.strftime(cur_time, "%d-%b-%Y %H:%M:%S.%f")
-        )
 
         # manually update
         container["SAR_PROCESSOR"] = "HL"
