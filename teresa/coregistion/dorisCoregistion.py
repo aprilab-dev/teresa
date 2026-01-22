@@ -50,7 +50,7 @@ class dorisCoregistion():
             self.doris.fine(date_dir)
             self.doris.coregpm(date_dir)
             self.doris.resample(date_dir)
-
+            
             # interferogram
             # 干涉图
             self.doris.interfero(date_dir)
@@ -63,10 +63,10 @@ class dorisCoregistion():
 
         # Step 6: Generate the DEM file
         # 6. 生成 dem 文件
-        global_log.start_dem()
-        dem_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "dem"
-        self.doris.dem(dem_path)
-        global_log.end_dem()
+        # global_log.start_dem()
+        # dem_path = self.slc_stack.work_dir + os.sep + "workspace" + os.sep + "dem"
+        # self.doris.dem(dem_path)
+        # global_log.end_dem()
 
     def create_work_dir(self):
         """

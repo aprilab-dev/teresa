@@ -312,7 +312,7 @@ class BC:
         print("NUMBER_OF_DATAPOINTS: 			{}".format(self.meta["Orbit_n_pts"]))  # nopep8
         print("")
 
-        if self.meta["Direction"] == "ASCENDING":  # fake right looking
+        if self.meta["Look Side"] == "left":  # fake right looking
             for i in reversed(range(0, self.meta["Orbit_n_pts"])):
 
                 x, y, z = [

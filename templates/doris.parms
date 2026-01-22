@@ -1,9 +1,9 @@
 {   
     "doris_path" :  "/home/junjun/software/doris/doris",
     "stack_parameters" : {
-        "work_dir"    : "/data/test/junjun/bc_beijing",                             
-        "data_dirs"   : "/data/test/junjun/bc_beijing/beijing_point2_insar",      
-        "masterDate" : "20240108"                                         
+        "work_dir"    : "/data/test/junjun/yubing",                             
+        "data_dirs"   : "/data/test/junjun/yubing/xianfeng/1RA",      
+        "masterDate" : "20250420"                                         
     },
     "coarsecorr" : {
         "CC_METHOD"   : "magfft",        
@@ -49,11 +49,11 @@
         "SRP_OUT_REFPHA"  : "./refpha.raw"                                                
     },
     "comprefdem" : {
-        "CRD_IN_DEM"     : "/data/tests/junjun/coregTest/bc3/dem/srtm1_egm96_orthometric.dem",       
+        "CRD_IN_DEM"     : "/data/test/junjun/yubing/xianfeng/dem/srtm1_egm96_orthometric.dem",       
         "CRD_IN_FORMAT"  : "r4",                                  
-        "CRD_IN_SIZE"    : "7201 7201",        
+        "CRD_IN_SIZE"    : "20326 8136",        
         "CRD_IN_DELTA"   : "0.000277777777778 0.000277777777778",    
-        "CRD_IN_UL"      : "35.0 108.0",                                  
+        "CRD_IN_UL"      : "26.0 102.0",                                  
         "CRD_IN_NODATA"  : -32768, 
         "CRD_OUT_DEM_LP" : "dem_radar.raw"                                                             
     },
@@ -62,9 +62,9 @@
         "SRD_OFFSET"  : "1 -2"                                                              
     },
     "dem" : {
-        "CRD_IN_DEM"     : "/data/tests/junjun/coregTest/bc3/dem/srtm1_egm96_orthometric.dem",       
+        "CRD_IN_DEM"     : "/data/test/junjun/yubing/xianfeng/dem/srtm1_egm96_orthometric.dem",       
         "CRD_IN_FORMAT"  : "r4",                                  
-        "CRD_IN_SIZE"    : "7201 7201",        
+        "CRD_IN_SIZE"    : "20326 8136",        
         "CRD_IN_DELTA"   : "0.000277777777778 0.000277777777778",    
         "CRD_IN_UL"      : "35.0 108.0",                                  
         "CRD_IN_NODATA"  : -32768,        
