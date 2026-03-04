@@ -9,7 +9,7 @@ class dorisProcessor():
 
     def _doris(self, arg):
         _DORIS = os.getenv('STACK_BUILDER_DORIS', self.params['doris_path'])
-        with open("doris.log", 'w') as log_file:
+        with open("doris.log", 'a') as log_file:
             return subprocess.call([_DORIS, arg], stdout=log_file, stderr=log_file)
 
     def coarseorb(self, path):

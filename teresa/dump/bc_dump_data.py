@@ -102,16 +102,16 @@ def bc3_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
     return True
 
 
-def bc3_dump_data_usage():
-    print(
-        "\nUsage: python3 bc3_dump_data_usage.py inputfile outputfile l0 lN p0 pN"
-    )  # nopep8
-    print("  where inputfile        is the input filename")
-    print("        outputfile       is the output filename")
-    print("        l0               is the first azimuth line (starting at 1)")
-    print("        lN               is the last azimuth line")
-    print("        p0               is the first range pixel (starting at 1)")
-    print("        pN               is the last range pixel")
+# def bc3_dump_data_usage():
+#     print(
+#         "\nUsage: python3 bc3_dump_data_usage.py inputfile outputfile l0 lN p0 pN"
+#     )  # nopep8
+#     print("  where inputfile        is the input filename")
+#     print("        outputfile       is the output filename")
+#     print("        l0               is the first azimuth line (starting at 1)")
+#     print("        lN               is the last azimuth line")
+#     print("        p0               is the first range pixel (starting at 1)")
+#     print("        pN               is the last range pixel")
 
 
 def bc_dump_data(source_data_path, work_dir):

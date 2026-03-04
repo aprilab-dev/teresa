@@ -6,6 +6,7 @@ import re
 radar_type_pat_map = {
     'LT1': r'^LT1.*\.meta\.xml$',
     'BC': r'^bc.*\.xml$',
+    'CSK': r'^CSK.*\.h5$',  
 }
 
 # This map is used to store different types of radar data and 
@@ -14,6 +15,7 @@ radar_type_pat_map = {
 is_meta_file = {
     'LT1': lambda x: bool(re.search(r'^LT1.*\.meta\.xml$', x)),
     'BC': lambda x: bool(re.search(r'^bc.*\.xml$', x)),
+    'CSK': lambda x: bool(re.search(r'^CSK.*\.h5$', x)), 
 }
 
 # This map is used to store different types of radar data and 
@@ -22,6 +24,7 @@ is_meta_file = {
 is_data_file = { 
     'LT1': lambda x: bool(re.search(r'^LT1.*\.tiff$', x)),
     'BC': lambda x: bool(re.search(r'^bc.*\.tiff$', x)),
+    'CSK': lambda x: bool(re.search(r'^CSK.*\.h5$', x)), 
 }
 
 # This map is used to extract the date from the filenames of different radar types
@@ -31,4 +34,6 @@ get_date_from_filename = {
             'data': lambda x: re.search(r'LT1.*_(20\d{6})', x).group(1)},
     'BC': {'meta': lambda x: re.search(r'bc.*(20\d{6})', x).group(1),
             'data': lambda x: re.search(r'bc.*(20\d{6})', x).group(1)},
+    'CSK': {'meta': lambda x: re.search(r'_(20\d{6})\d{6}_', x).group(1),
+            'data': lambda x: re.search(r'_(20\d{6})\d{6}_', x).group(1)}, 
 }
