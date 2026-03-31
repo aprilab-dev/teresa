@@ -16,6 +16,13 @@ from datetime import datetime, timedelta
 SPEED_OF_LIGHT = 299792458
 
 
+def strftime_doris(dt):
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    return f"{dt.day:02d}-{months[dt.month - 1]}-{dt.year} {dt.hour:02d}:{dt.minute:02d}:{dt.second:02d}.{dt.microsecond:06d}"
+
+
+
 def locate(pattern: str, root=os.curdir) -> str:
     # region docstring
     """Locate the **first** file matching supplied filename pattern
@@ -95,124 +102,157 @@ class BC:
         self.meta["path"] = locate(pattern, directory)
 
         return self
-
-    def read_meta(self):
-        """Formatting the meta."""
-
+    def read_meta(self) -> None:
+        """Read and parse metadata from XML file."""
         query_list: dict = {
             # volume info
             "Volume file": self.meta["path"],
-            "Volume_ID": "adsHeader//missionId",
-            "Volume_identifier": "adsHeader//missionId",
-            "Volume_set_identifier": "adsHeader//missionId",
+            "Volume_ID": "adsHeader/missionId",
+            "Volume_identifier": "adsHeader/missionId",
+            "Volume_set_identifier": "adsHeader/missionId",
             # mission info
-            "(Check)Number of records in ref. file": "imageAnnotation//imageInformation//numberOfLines",
+            "(Check)Number of records in ref. file": "imageAnnotation/imageInformation/numberOfLines",
             "SAR_PROCESSOR": None,
-            "Product type specifier": "adsHeader//missionId",
+            "Product type specifier": "adsHeader/productType",
             "Logical volume generating facility": None,
             "Logical volume creation date": None,
             "Location and date/time of product creation": None,
-            "Orbit": "adsHeader//absoluteOrbitNumber",  # Scene identification
-            "Direction": "generalAnnotation//productInformation//pass",  # Scene identification
-            "Mode": "adsHeader//mode",  # Scene identification
+            "Orbit": "adsHeader/absoluteOrbitNumber",
+            "Heading_platform": "generalAnnotation/productInformation/platformHeading",
+            "Direction": "generalAnnotation/productInformation/pass",
+            "Mode": "adsHeader/mode",
             "Leader file": self.meta["path"],
-            "Sensor platform mission identifer": "adsHeader//missionId",
-            "Scene_centre_latitude": None,  # Scene location
-            "Scene_centre_longitude": None,  # Scene location
+            "Sensor platform mission identifer": "adsHeader/missionId",
+            "Scene_centre_latitude": None,
+            "Scene_centre_longitude": None,
+            "Scene_corner_latitude": None,
+            "Scene_corner_longitude": None,
+            "Reference_range": "imageAnnotation/processingInformation/referenceRange",
+            "Ellipsoid_semi_major_axis": "imageAnnotation/processingInformation/ellipsoidSemiMajorAxis",
+            "Ellipsoid_semi_minor_axis": "imageAnnotation/processingInformation/ellipsoidSemiMinorAxis",
             # product info
-            "Radar_wavelength (m)": "generalAnnotation//productInformation//radarFrequency",
-            "First_pixel_azimuth_time (UTC)": "imageAnnotation//imageInformation//productFirstLineUtcTime",
-            "Last_pixel_azimuth_time (UTC)": "imageAnnotation//imageInformation//productLastLineUtcTime",
-            "Pulse_Repetition_Frequency (computed, Hz)": "generalAnnotation//downlinkInformationList//prf",
-            "Total_azimuth_band_width (Hz)": "imageAnnotation//processingInformation//swathProcParamsList//swathProcParams//azimuthProcessing//totalBandwidth",
+            "Radar_wavelength (m)": "generalAnnotation/productInformation/radarFrequency",
+            "First_pixel_azimuth_time (UTC)": "imageAnnotation/imageInformation/productFirstLineUtcTime",
+            "Last_pixel_azimuth_time (UTC)": "imageAnnotation/imageInformation/productLastLineUtcTime",
+            "Pulse_Repetition_Frequency (computed, Hz)": "generalAnnotation/downlinkInformationList/downlinkInformation/prf",
+            "Total_azimuth_band_width (Hz)": "imageAnnotation/processingInformation/swathProcParamsList/swathProcParams/azimuthProcessing/totalBandwidth",
+            "Azimuth_proc_bandwidth": "imageAnnotation/processingInformation/swathProcParamsList/swathProcParams/azimuthProcessing/processingBandwidth",
+            "Incidence_angle_mid_swath": "imageAnnotation/imageInformation/incidenceAngleMidSwath",
             "Weighting_azimuth": None,
-            "Doppler_Coef": "dopplerCentroid//dcEstimateList//dcEstimate//dataDcPolynomial",
+            "Doppler_Coef": "dopplerCentroid/dcEstimateList/dcEstimate/dataDcPolynomial",
             "Xtrack_f_DC_constant (Hz, early edge)": None,
             "Xtrack_f_DC_linear (Hz/s, early edge)": None,
-            "Xtrack_f_DC_quadratic (Hz/s/s, early edge)": None,  # are all together
-            "Range_time_to_first_pixel (2way) (ms)": "imageAnnotation//imageInformation//slantRangeTime",  # [s], needs to convert to ms
-            "Range_sampling_rate (computed, MHz)": "generalAnnotation//productInformation//rangeSamplingRate",  # needs to divide by 1e6
-            "Total_range_band_width (MHz)": "imageAnnotation//processingInformation//swathProcParamsList//swathProcParams//rangeProcessing//totalBandwidth",
+            "Xtrack_f_DC_quadratic (Hz/s/s, early edge)": None,
+            "Range_time_to_first_pixel (2way) (ms)": "imageAnnotation/imageInformation/slantRangeTime",
+            "Range_sampling_rate (computed, MHz)": "generalAnnotation/productInformation/rangeSamplingRate",
+            "Total_range_band_width (MHz)": "imageAnnotation/processingInformation/swathProcParamsList/swathProcParams/rangeProcessing/totalBandwidth",
             "Weighting_range": None,
+            "Antenna_side": "imageAnnotation/imageInformation/look_side",
             # SLC info
             "Datafile": None,
-            "Dataformat": "adsHeader//productType",
-            "Number_of_lines_original": "imageAnnotation//imageInformation//numberOfLines",
-            "Number_of_pixels_original": "imageAnnotation//imageInformation//numberOfSamples",
+            "Dataformat": "adsHeader/productType",
+            "Number_of_lines_original": "imageAnnotation/imageInformation/numberOfLines",
+            "Number_of_pixels_original": "imageAnnotation/imageInformation/numberOfSamples",
+            "Range_pixel_spacing": "imageAnnotation/imageInformation/rangePixelSpacing",
+            "Azimuth_pixel_spacing": "imageAnnotation/imageInformation/azimuthPixelSpacing",
             # Orbit
-            "Orbit Time": "generalAnnotation//orbitList//orbit//time",
-            "Orbit X": "generalAnnotation//orbitList//orbit//position//x",
-            "Orbit Y": "generalAnnotation//orbitList//orbit//position//y",
-            "Orbit Z": "generalAnnotation//orbitList//orbit//position//z",
+            "Orbit Time": "generalAnnotation/orbitList/orbit/time",
+            "Orbit X": "generalAnnotation/orbitList/orbit/position/x",
+            "Orbit Y": "generalAnnotation/orbitList/orbit/position/y",
+            "Orbit Z": "generalAnnotation/orbitList/orbit/position/z",
+            "Orbit VX": "generalAnnotation/orbitList/orbit/velocity/x",
+            "Orbit VY": "generalAnnotation/orbitList/orbit/velocity/y",
+            "Orbit VZ": "generalAnnotation/orbitList/orbit/velocity/z",
             # Geolocation
-            "latitude":"geolocationGrid//geolocationGridPointList//latitude",
-            "longitude":"geolocationGrid//geolocationGridPoint//longitude",
-            # Look Side
-            "Look Side": "imageAnnotation//imageInformation//look_side"
+            "latitude": "geolocationGrid/geolocationGridPointList/geolocationGridPoint/latitude",
+            "longitude": "geolocationGrid/geolocationGridPointList/geolocationGridPoint/longitude",
+            "terrain_height": "generalAnnotation/terrainHeightList/terrainHeight/value"
         }
 
-        # get variables and parameters from xml
+        # Initialize container
         container: Dict[str, Any] = {
             "Orbit Time": [],
             "Orbit X": [],
             "Orbit Y": [],
             "Orbit Z": [],
+            "Orbit VX": [],
+            "Orbit VY": [],
+            "Orbit VZ": [],
             "latitude": [],
             "longitude": [],
         }
+
+        # Parse XML
         root = ElementTree.parse(self.meta["path"]).getroot()
-        for key, value in query_list.items():
-            if value is None:
+
+        for key, xpath in query_list.items():
+            if xpath is None:
                 container[key] = "Unknown"
-            elif value.endswith(".xml"):  # metafile
-                container[key] = os.path.basename(value)
+            elif xpath == self.meta["path"]:  # file paths
+                container[key] = str(self.meta["path"])
+            elif key in ["Orbit Time", "Orbit X", "Orbit Y", "Orbit Z", "Orbit VX", "Orbit VY", "Orbit VZ", "latitude", "longitude"]:
+                # Handle list elements
+                elements = root.findall(xpath)
+                for elem in elements:
+                    if elem is not None and elem.text is not None:
+                        container[key].append(elem.text)
             else:
-                for item in root.findall(value):
-                    if key.startswith("Orbit "):  # space is necessary here.
-                        container[key].append(item.text)
-                    elif key.endswith("tude") and key.startswith("l"): # latitude & longitude
-                        container[key].append(item.text)
-                    else:
-                        container[key] = item.text
+                # Handle single elements
+                elem = root.find(xpath)
+                container[key] = elem.text if elem is not None and elem.text is not None else "Unknown"
 
-            
-
-        # Two entries that have to be manually updated
+        # Calculate additional metadata
         container["Orbit_n_pts"] = len(container["Orbit Time"])
 
-        # center of the scene
-        # find the 'geolocationGridPointList' element
-        geolocation_list = root.find('geolocationGrid//geolocationGridPointList')
-        count = geolocation_list.get('count')  # type: ignore
-        center_scene_index = (int(count) + 1) // 2  # type: ignore
-        container["Scene_centre_latitude"] = float(container["latitude"][center_scene_index])
-        container["Scene_centre_longitude"] = float(container["longitude"][center_scene_index])
+        # # Scene center coordinates
+        # geolocation_list = root.find('geolocationGrid/geolocationGridPointList')
+        # count = int(geolocation_list.get('count')) if geolocation_list is not None else len(container["latitude"])
+        # center_scene_index = (count - 1) // 2
+        # container["Scene_centre_latitude"] = float(container["latitude"][center_scene_index])
+        # container["Scene_centre_longitude"] = float(container["longitude"][center_scene_index])
+
+        # === 修正：从 geolocationGrid 提取四角点和中心坐标 ===
+        geolocation_points = root.findall('geolocationGrid/geolocationGridPointList/geolocationGridPoint')
+        if len(geolocation_points) == 4:
+            # 顺序：左上(0,0)、右上(0,w-1)、左下(h-1,0)、右下(h-1,w-1)
+            lat_vals = [float(p.find('latitude').text) for p in geolocation_points]
+            lon_vals = [float(p.find('longitude').text) for p in geolocation_points]
+
+            # 保存四角点
+            container["Scene_corner_latitude"] = lat_vals  # [lat1, lat2, lat3, lat4]
+            container["Scene_corner_longitude"] = lon_vals  # [lon1, lon2, lon3, lon4]
+
+            # 计算中心点（取四个角的平均）
+            container["Scene_centre_latitude"] = sum(lat_vals) / 4.0
+            container["Scene_centre_longitude"] = sum(lon_vals) / 4.0
+        else:
+            # If it's not scene centre coordinate system
+            geolocation_list = root.find('geolocationGrid/geolocationGridPointList')
+            count = int(geolocation_list.get('count')) if geolocation_list is not None else len(container["latitude"])
+            center_scene_index = (count - 1) // 2
+            container["Scene_centre_latitude"] = float(container["latitude"][center_scene_index])
+            container["Scene_centre_longitude"] = float(container["longitude"][center_scene_index])
+            container["Scene_corner_latitude"] = [container["Scene_centre_latitude"]] * 4
+            container["Scene_corner_longitude"] = [container["Scene_centre_longitude"]] * 4
 
         container["Scene identification"] = (
-            "Orbit: "
-            + container["Orbit"]
-            + " "
-            + container["Direction"]
-            + " Mode: "
-            + container["Mode"]
+            f"Orbit: {container['Orbit']} {container['Direction']} Mode: {container['Mode']}"
         )
         container["Scene location"] = (
-            "lat: "
-            + str(container["Scene_centre_latitude"])  # type: ignore
-            + " lon: "
-            + str(container["Scene_centre_longitude"])
+            f"lat: {container['Scene_centre_latitude']} lon: {container['Scene_centre_longitude']}"
         )
-
+        # Data file
         container["Datafile"] = os.path.basename(
             locate("bc*slc*.tiff", os.path.dirname(self.meta["path"]))
         )
 
-        # 2-way Slant Range Time
-        container["Range_time_to_first_pixel (2way) (ms)"] = (  # us to ms
+        # Convert units and formats
+        # Range time to ms
+        container["Range_time_to_first_pixel (2way) (ms)"] = (
             1000 * float(container["Range_time_to_first_pixel (2way) (ms)"])
         )
 
-        # RSR
+        # Range sampling rate and bandwidth to MHz
         container["Range_sampling_rate (computed, MHz)"] = (
             float(container["Range_sampling_rate (computed, MHz)"]) / 1e6
         )
@@ -220,36 +260,53 @@ class BC:
             float(container["Total_range_band_width (MHz)"]) / 1e6
         )
 
-        container["Radar_wavelength (m)"] = SPEED_OF_LIGHT / float(container["Radar_wavelength (m)"])
-
-        # unpack doppler coefficients
-        (
-            container["Xtrack_f_DC_constant (Hz, early edge)"],
-            container["Xtrack_f_DC_linear (Hz/s, early edge)"],
-            container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"], *_
-        ) = container["Doppler_Coef"].split()
-
-        cur_time = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
-        if container["Look Side"] == "left":
-            cur_time = datetime.strptime(container["Last_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
-            cur_time = reverse_time(cur_time)  # reverse time to "fake" right looking
-        container["First_pixel_azimuth_time (UTC)"] = (
-            datetime.strftime(cur_time, "%d-%b-%Y %H:%M:%S.%f")
+        # Wavelength calculation
+        container["Radar_wavelength (m)"] = (
+            SPEED_OF_LIGHT / float(container["Radar_wavelength (m)"])
         )
-        
-        # manually update
+
+        # Doppler coefficients
+        # --- 新增：根据天线方向和轨道方向决定多普勒符号处理 ---
+        # 左视卫星需要反转多普勒符号（物理规则）
+        doppler_sign = -1 if container["Antenna_side"] == "LEFT" else 1
+        doppler_coeffs = container["Doppler_Coef"].split()
+        container["Xtrack_f_DC_constant (Hz, early edge)"] = doppler_coeffs[0] if len(doppler_coeffs) > 0 else "0.0"
+        container["Xtrack_f_DC_linear (Hz/s, early edge)"] = doppler_coeffs[1] if len(doppler_coeffs) > 1 else "0.0"
+        container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"] = doppler_coeffs[2] if len(doppler_coeffs) > 2 else "0.0"
+        # 应用符号调整（注意：升轨已做时间反转，这里只需统一处理符号）
+        container["Xtrack_f_DC_constant (Hz, early edge)"] = str(
+            doppler_sign * float(container["Xtrack_f_DC_constant (Hz, early edge)"]))
+        container["Xtrack_f_DC_linear (Hz/s, early edge)"] = str(doppler_sign *
+                                                                 float(container["Xtrack_f_DC_linear (Hz/s, early edge)"]))
+        container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"] = str(doppler_sign *
+                                                                      float(container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"]))
+        # Time handling for ascending orbits
+        cur_time_start = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
+        cur_time_end = datetime.strptime(container["Last_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
+        # if container["Antenna_side"] == "LEFT":
+        #     cur_time_start = datetime.strptime(container["Last_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
+        #     cur_time_end = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
+        #     cur_time_start = reverse_time(cur_time_start)
+        #     cur_time_end = reverse_time(cur_time_end)
+
+        # datetime.strftime(cur_time_start, DORIS_DATETIME_FORMAT)
+        # datetime.strftime(cur_time_end, DORIS_DATETIME_FORMAT)
+        container["First_pixel_azimuth_time (UTC)"] = strftime_doris(cur_time_start)
+        container["Last_pixel_azimuth_time (UTC)"] = strftime_doris(cur_time_end)
+
+        # Fixed values
         container["SAR_PROCESSOR"] = "HL"
         container["Logical volume generating facility"] = "HL"
-
         container["Product type specifier"] = "BC3"
         container["Sensor platform mission identifer"] = "BC3"
 
+        container["Terrain_height"] = float(container.get("terrain_height", 0.0))
         self.meta.update(container)
 
-        return self
-
     def export2res(self) -> None:
-        """EXPORT2RES exports the meta into .res format that's compatible with doris."""
+        """Export metadata to Doris .res format."""
+
+        # Header keys (same as original)
         keys_lead = (
             "Volume file",
             "Volume_ID",
@@ -262,15 +319,24 @@ class BC:
             "Location and date/time of product creation",
             "Scene identification",
             "Scene location",
+            "Heading_platform",
             "Leader file",
             "Sensor platform mission identifer",
             "Scene_centre_latitude",
             "Scene_centre_longitude",
+            "Scene_corner_latitude",
+            "Scene_corner_longitude",
+            "Reference_range",
+            "Ellipsoid_semi_major_axis",
+            "Ellipsoid_semi_minor_axis",
             "Radar_wavelength (m)",
             "First_pixel_azimuth_time (UTC)",
+            "Last_pixel_azimuth_time (UTC)",
             "Pulse_Repetition_Frequency (computed, Hz)",
             "Total_azimuth_band_width (Hz)",
+            "Azimuth_proc_bandwidth",
             "Weighting_azimuth",
+            "Incidence_angle_mid_swath",
             "Xtrack_f_DC_constant (Hz, early edge)",
             "Xtrack_f_DC_linear (Hz/s, early edge)",
             "Xtrack_f_DC_quadratic (Hz/s/s, early edge)",
@@ -278,6 +344,8 @@ class BC:
             "Range_sampling_rate (computed, MHz)",
             "Total_range_band_width (MHz)",
             "Weighting_range",
+            "Antenna_side",
+            "Terrain_height"
         )
 
         keys_file = (
@@ -285,20 +353,44 @@ class BC:
             "Dataformat",
             "Number_of_lines_original",
             "Number_of_pixels_original",
+            "Range_pixel_spacing",
+            "Azimuth_pixel_spacing"
         )
 
-        print("\nbc3_dump_header2doris.py v1,0, doris software, 2024\n")
+        # Print header
+        print("**************************************************************")
+        print("*Processing_Status_Flag:")
+        print("**************************************************************")
+        print("Start_process_control")
+        print("readfiles:\t\t1")
+        print("precise_orbits:\t\t0")
+        print("modify_orbits:\t\t0")
+        print("crop:\t\t1")
+        print("sim_amplitude:\t\t0")
+        print("master_timing:\t\t0")
+        print("oversample:\t\t0")
+        print("resample:\t\t0")
+        print("filt_azi:\t\t0")
+        print("filt_range:\t\t0")
+        print("NOT_USED:\t\t0")
+        print("End_process_control")
+        print("")
+        print("-----------------------------------------------------------")
+        print("\nBCHeaderReader v1.0, doris software, 2024\n")
         print("**************************************************************")
         print("*_Start_readfiles:")
         print("**************************************************************")
 
-        for keys in keys_lead:
-            print("{:<50}\t{}".format(keys + ":", self.meta[keys]))
+        # Print lead keys
+        for key in keys_lead:
+            print("{:<50}\t{}".format(key + ":", self.meta[key]))
 
         print("")
         print("**************************************************************")
-        for keys in keys_file:
-            print("{:<50}\t{}".format(keys + ":", self.meta[keys]))
+
+        # Print file keys
+        for key in keys_file:
+            print("{:<50}\t{}".format(key + ":", self.meta[key]))
 
         print("**************************************************************")
         print("* End_readfiles:_NORMAL")
@@ -308,53 +400,37 @@ class BC:
         print("**************************************************************")
         print("*_Start_leader_datapoints")
         print("**************************************************************")
-        print(" t(s)		X(m)		Y(m)		Z(m)")
-        print("NUMBER_OF_DATAPOINTS: 			{}".format(self.meta["Orbit_n_pts"]))  # nopep8
+        print(" t(s)\t\tX(m)\t\tY(m)\t\tZ(m)\t\tVX(m/s)\t\tVY(m/s)\t\tVZ(m\s)")
+        # print(" t(s)\t\tX(m)\t\tY(m)\t\tZ(m)")
+        print("NUMBER_OF_DATAPOINTS: \t\t\t{}".format(self.meta["Orbit_n_pts"]))
         print("")
 
-        if self.meta["Look Side"] == "left":  # fake right looking
-            for i in reversed(range(0, self.meta["Orbit_n_pts"])):
-
-                x, y, z = [
-                    e
-                    for e in (
-                        self.meta["Orbit X"][i],
-                        self.meta["Orbit Y"][i],
-                        self.meta["Orbit Z"][i],
-                    )
-                ]  # format in a nicer way
-                cur_orb_time = self.meta["Orbit Time"][i]
-                cur_orb_time = reverse_time(datetime.strptime(cur_orb_time, "%Y-%m-%dT%H:%M:%S.%f"))
-                cur_orb_time = datetime.strftime(cur_orb_time, "%Y-%m-%dT%H:%M:%S.%f")
-                print(
-                    " {:>7} {:>15} {:>15} {:>15}".format(
-                        hms2sec(cur_orb_time, convertFlag="float"),
-                        x,
-                        y,
-                        z
-                    )
-                )
-        else:
-            for i in range(0, self.meta["Orbit_n_pts"]):
-
-                x, y, z = [
-                    e
-                    for e in (
-                        self.meta["Orbit X"][i],
-                        self.meta["Orbit Y"][i],
-                        self.meta["Orbit Z"][i],
-                    )
-                ]  # format in a nicer way
-
-                cur_orb_time = self.meta["Orbit Time"][i]
-                print(
-                    " {:>7} {:>15} {:>15} {:>15}".format(
-                        hms2sec(cur_orb_time, convertFlag="float"),
-                        x,
-                        y,
-                        z
-                    )
-                )
+        # Print orbit data (with reversal for ascending orbits)
+        # if self.meta["Direction"] == "ASCENDING":
+        #     for i in reversed(range(self.meta["Orbit_n_pts"])):
+        #         x, y, z = self.meta["Orbit X"][i], self.meta["Orbit Y"][i], self.meta["Orbit Z"][i]
+        #         vx, vy, vz = self.meta["Orbit VX"][i], self.meta["Orbit VY"][i], self.meta["Orbit VZ"][i]
+        #         cur_orb_time = self.meta["Orbit Time"][i]
+        #         cur_orb_time_dt = datetime.strptime(cur_orb_time, "%Y-%m-%dT%H:%M:%S.%f")
+        #         cur_orb_time_dt = reverse_time(cur_orb_time_dt)
+        #         cur_orb_time_str = datetime.strftime(cur_orb_time_dt, "%Y-%m-%dT%H:%M:%S.%f")
+        #         # print(" {:>7} {:>15} {:>15} {:>15}".format(
+        #         #     hms2sec(cur_orb_time_str, convertFlag="float"), x, y, z
+        #         # ))
+        #         print(" {:>7} {:>15} {:>15} {:>15} {:>15} {:>15} {:>15}".format(
+        #             hms2sec(cur_orb_time_str, convertFlag="float"), x, y, z, vx, vy, vz
+        #         ))
+        # else:
+        for i in range(self.meta["Orbit_n_pts"]):
+            x, y, z = self.meta["Orbit X"][i], self.meta["Orbit Y"][i], self.meta["Orbit Z"][i]
+            vx, vy, vz = self.meta["Orbit VX"][i], self.meta["Orbit VY"][i], self.meta["Orbit VZ"][i]
+            cur_orb_time = self.meta["Orbit Time"][i]
+            # print(" {:>7} {:>15} {:>15} {:>15}".format(
+            #     hms2sec(cur_orb_time, convertFlag="float"), x, y, z
+            # ))
+            print(" {:>7} {:>15} {:>15} {:>15} {:>15} {:>15} {:>15}".format(
+                hms2sec(cur_orb_time, convertFlag="float"), x, y, z, vx, vy, vz
+            ))
 
         print("\n")
         print("**************************************************************")
@@ -410,4 +486,5 @@ def bc_dump_header2doris(source_meta_path, work_dir):
     with open(result_file, "w") as f:
         with redirect_stdout(f):
             bc.usage()
-            bc.read_meta().export2res()
+            bc.read_meta()
+            bc.export2res()
