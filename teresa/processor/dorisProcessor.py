@@ -1,6 +1,7 @@
 import os
 import subprocess
 from teresa.utils.TeresaLog import global_log
+from teresa.utils.geocode._geocode import run_geocode_forward
 
 # DorisExpert
 class dorisProcessor():
@@ -221,4 +222,17 @@ class dorisProcessor():
                 if [line for line in coreg_out if 'dem_assist:' in line][0].split()[1] == '0':
                     global_log.step_end("dem", status="FAIL")
                     raise ValueError(f"dem error.")
+    
+    def geocode(self, path):
+        # Generate lat/lon LUT for demcrop
+        global_log.step_start("geocode")
+        if os.path.exists(os.path.join(path, "lat.raw")) and os.path.exists(os.path.join(path, "lon.raw")):
+            global_log.step_end("geocode", status="SKIPPED")
+            return
+        run_geocode_forward(dem_radar_filename=os.path.join(path, "image_crop.raw"),
+                            resfile=os.path.join(path, "dem", "slavedem.res"),
+                            output_lat=os.path.join(path, "lat.raw"),
+                            output_lon=os.path.join(path, "lon.raw"),
+                            log_file=os.path.join(path, "run_lut_generation.log"))
         
+        global_log.step_end("geocode", status="SUCCESS")
