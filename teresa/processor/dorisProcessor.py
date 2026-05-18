@@ -1,4 +1,5 @@
 import os
+import glob
 import subprocess
 from teresa.utils.TeresaLog import global_log
 from teresa.utils.geocode._geocode import run_geocode_forward
@@ -229,7 +230,11 @@ class dorisProcessor():
         if os.path.exists(os.path.join(path, "lat.raw")) and os.path.exists(os.path.join(path, "lon.raw")):
             global_log.step_end("geocode", status="SKIPPED")
             return
-        run_geocode_forward(dem_radar_filename=os.path.join(path, "image_crop.raw"),
+        dem_radar_file = glob.glob(os.path.join(path, "**", "dem_radar.raw"), recursive=True)
+        if not dem_radar_file:
+            global_log.step_end("geocode", status="FAIL")
+            raise ValueError(f"dem_radar.raw not found for geocode.")
+        run_geocode_forward(dem_radar_filename=dem_radar_file[0],
                             resfile=os.path.join(path, "dem", "slavedem.res"),
                             output_lat=os.path.join(path, "lat.raw"),
                             output_lon=os.path.join(path, "lon.raw"),
