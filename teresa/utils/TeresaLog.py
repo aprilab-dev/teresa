@@ -95,5 +95,12 @@ class TeresaLog:
     def end_dem(self):  
         self.write("DEM-based coregistration completed.")
         self.write("=" * 100)
+    
+    def start_geocode(self):
+        self.write("Starting radarcoding...")
+    
+    def end_geocode(self):
+        self.write("Radarcoding completed.")
+        self.write("=" * 100)
 
 global_log = TeresaLog(output_file=None)

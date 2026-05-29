@@ -1,6 +1,9 @@
 import os
+import re
+import glob
 import subprocess
 from teresa.utils.TeresaLog import global_log
+from teresa.utils.geocode._geocode import run_geocode_forward
 
 # DorisExpert
 class dorisProcessor():
@@ -221,4 +224,46 @@ class dorisProcessor():
                 if [line for line in coreg_out if 'dem_assist:' in line][0].split()[1] == '0':
                     global_log.step_end("dem", status="FAIL")
                     raise ValueError(f"dem error.")
+    
+    def geocode(self, path):
+        global_log.step_start("geocode")
+        if os.path.exists(os.path.join(path, "lat.raw")) and os.path.exists(os.path.join(path, "lon.raw")):
+            global_log.step_end("geocode", status="SKIPPED")
+            return
+        dem_radar_file = glob.glob(os.path.join(path, "**", "dem_radar.raw"), recursive=True)
+        if not dem_radar_file:
+            global_log.step_end("geocode", status="FAIL")
+            raise ValueError(f"dem_radar.raw not found for geocode.")
         
+        # Read rlooks and alooks from coreg.out
+        coreg_out_candidates: list = []
+        coreg_out_candidates = glob.glob(os.path.join(path, "**", "coreg.out"), recursive=True)
+        if len(coreg_out_candidates) == 0:
+            raise FileNotFoundError(f"coreg.out not found in the workspace {path}.")
+        coreg_out_candidates.sort(key=os.path.getmtime, reverse=True)  # Sort by modification time, newest first
+        coreg_out = coreg_out_candidates[0]
+        with open(coreg_out) as f_coreg_out:
+            coreg_out_content = f_coreg_out.read()
+            # Try to locate the _Start_comp_refdem block and read alooks and rlooks
+            block_match = re.search(
+                r'\*_Start_comp_refdem:.*?\* End_comp_refdem:_NORMAL',
+                coreg_out_content, re.DOTALL
+            )
+            if block_match is None:
+                raise ValueError("_Start_comp_refdem block not found in coreg.out")
+            block = block_match.group(0)
+            alooks_match = re.search(r'Multilookfactor_azimuth_direction:\s+(\d+)', block)
+            rlooks_match = re.search(r'Multilookfactor_range_direction:\s+(\d+)', block)
+            if alooks_match is None or rlooks_match is None:
+                raise ValueError("Multilookfactor not found in _Start_comp_refdem block")
+        
+        # Run geocode_forward to generate lat/lon LUTs
+        run_geocode_forward(dem_radar_filename=dem_radar_file[0],
+                            resfile=os.path.join(path, "dem", "slavedem.res"),
+                            rlooks=int(rlooks_match.group(1)),
+                            alooks=int(alooks_match.group(1)),
+                            output_lat=os.path.join(path, "lat.raw"),
+                            output_lon=os.path.join(path, "lon.raw"),
+                            log_file=os.path.join(path, "run_lut_generation.log"))
+        
+        global_log.step_end("geocode", status="SUCCESS")
