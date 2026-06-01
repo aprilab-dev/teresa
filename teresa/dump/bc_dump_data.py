@@ -69,7 +69,7 @@ def bc3_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
 
     outStream.write("\n")
     outStream.write("**************************************************\n")
-    outStream.write("*_Start_crop:			FC1\n")
+    outStream.write("*_Start_crop:			BC\n")
     outStream.write("**************************************************\n")
     outStream.write("Data_output_file: 	%s\n" % fileout)
     outStream.write("Data_output_format: 			complex_short\n")
