@@ -17,9 +17,9 @@ def hms2sec(timestr: str, convertFlag: str = "int") -> float:
         + float(time_parts[2])
     )
     if convertFlag == "int":
-        return round(secString)
+        return secString
     elif convertFlag == "float":
-        return float(secString)
+        return secString
     else:
         return round(secString)
 
@@ -118,6 +118,51 @@ def extract_lt4_meta(source_meta_path):
         meta["Orbit_VX"].append(float(gps.findtext("xVelocitye")))
         meta["Orbit_VY"].append(float(gps.findtext("yVelocitye")))
         meta["Orbit_VZ"].append(float(gps.findtext("zVelocitye")))
+
+    
+    # 轨道排序去重（严格递增）- 以 Orbit_Time 为主键，其他字段保持一致排序和去重
+    keys = [
+        "Orbit_Time",
+        "Orbit_X",
+        "Orbit_Y",
+        "Orbit_Z",
+        "Orbit_VX",
+        "Orbit_VY",
+        "Orbit_VZ"
+    ]
+
+    # 打包
+    orbit_data = list(zip(*(meta[k] for k in keys)))
+
+    # 排序
+    orbit_data.sort(
+        key=lambda x: datetime.strptime(
+            x[0],
+            "%Y-%m-%d %H:%M:%S.%f"
+        )
+    )
+
+    # 去重（严格递增）
+    filtered_data = []
+
+    last_time = None
+
+    for row in orbit_data:
+
+        current_time = datetime.strptime(
+            row[0],
+            "%Y-%m-%d %H:%M:%S.%f"
+        )
+
+        if last_time is None or current_time > last_time:
+            filtered_data.append(row)
+            last_time = current_time
+
+    # 解包回 meta
+    for i, k in enumerate(keys):
+        meta[k] = [row[i] for row in filtered_data]
+
+    meta["Orbit_n_pts"] = len(filtered_data)
 
     return meta
 
