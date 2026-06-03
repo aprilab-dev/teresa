@@ -84,7 +84,7 @@ def extract_lt4_meta(source_meta_path):
     
     PRF = float(root.findtext("sensor/waveParams/wave/PRF"))
     meta["Pulse_Repetition_Frequency (computed, Hz)"] = PRF
-    meta["Total_azimuth_band_width (Hz)"] = float(root.findtext("processinfo/AzimuthLookBandWidth")) * PRF / (2 * np.pi)
+    meta["Total_azimuth_band_width (Hz)"] = float(root.findtext("processinfo/AzimuthLookBandWidth"))
 
     near_range = float(root.findtext("imageinfo/nearRange"))
     meta["Range_time_to_first_pixel (2way) (ms)"] = (2 * near_range / SPEED_OF_LIGHT) * 1000
